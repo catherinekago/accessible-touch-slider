@@ -2,6 +2,8 @@ package com.example.tactileslider;
 
 // Source: https://www.coderzheaven.com/2016/08/09/custom-seekbar-in-android-with-labels-in-bottom/
 
+import static android.content.Context.VIBRATOR_SERVICE;
+
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -12,6 +14,7 @@ import android.graphics.drawable.InsetDrawable;
 import android.graphics.drawable.LayerDrawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.OvalShape;
+import android.os.Vibrator;
 import android.util.Log;
 import android.view.Gravity;
 import android.widget.LinearLayout;
@@ -32,6 +35,12 @@ public class TactileSlider {
         private int PRIMARY_DARK;
         private int PRIMARY_LIGHT;
 
+        // Tactile Feedback
+        //Vibration: requires context to work
+        Vibrator vibrator;
+        final long[] PATTERN_TICK = {0, 100};
+        final long[] PATTERN_ENDPOINT = {0, 300};
+
         public TactileSlider(Context context, int steps, int maxCountLabel) {
             this.mContext = context;
             this.steps = steps + 1;
@@ -40,6 +49,7 @@ public class TactileSlider {
             PRIMARY_DARK = mContext.getResources().getColor(R.color.grape_dark);
             PRIMARY_LIGHT = mContext.getResources().getColor(R.color.grape_light);
             this.textColor = PRIMARY_LIGHT;
+            vibrator = (Vibrator) context.getSystemService(VIBRATOR_SERVICE);
         }
 
         Double getCurrentCount(){
@@ -98,7 +108,20 @@ public class TactileSlider {
             public void onProgressChanged(SeekBar seekBar, int progress,boolean fromUser) {
                 currentCount = new Double(progress) / maxCountLabel;
                 currentCountTextView.setText(CURRENT_COUNT_PREFIX + String.valueOf(currentCount));
-            }
+
+                if (currentCount % 1 == 0){
+                    switch ((int) Math.round(currentCount)){
+                        case 0:
+                            // This is hardcoded!!!
+                        case 10:
+                            vibrator.vibrate(PATTERN_ENDPOINT, -1);
+                            break;
+                        default:
+                            vibrator.vibrate(PATTERN_TICK, -1);
+                        }
+                    }
+                }
+
         });
     }
 
