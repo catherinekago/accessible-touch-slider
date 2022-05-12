@@ -50,29 +50,7 @@ public class TactileSlider {
 
             if (parent instanceof LinearLayout) {
 
-                parent.setOrientation(LinearLayout.VERTICAL);
-                tactileSlider = new SeekBar(mContext);
-                tactileSlider.setMax(steps - 1);
-                tactileSlider.incrementProgressBy(1);
-                tactileSlider.setProgress(0);
-                tactileSlider.setPadding(PADDING_HORIZONTAL, 0, PADDING_HORIZONTAL, 0);
-                setSeekBarProgress(40, 100);
-                setSeekBarThumb(80, 80);
-                tactileSlider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-
-                    @Override
-                    public void onStopTrackingTouch(SeekBar seekBar) { }
-
-                    @Override
-                    public void onStartTrackingTouch(SeekBar seekBar) { }
-
-                    @Override
-                    public void onProgressChanged(SeekBar seekBar, int progress,boolean fromUser) {
-                        currentCount = new Double(progress) / maxCountLabel;
-                        currentCountTextView.setText(CURRENT_COUNT_PREFIX + String.valueOf(currentCount));
-                    }
-                });
-
+                setUpTactileSlider(parent);
 
                 // Add LinearLayout for labels below SeekBar
                 mSeekLin = new LinearLayout(mContext);
@@ -99,6 +77,30 @@ public class TactileSlider {
 
         }
 
+    private void setUpTactileSlider(LinearLayout parent) {
+        parent.setOrientation(LinearLayout.VERTICAL);
+        tactileSlider = new SeekBar(mContext);
+        tactileSlider.setMax(steps - 1);
+        tactileSlider.incrementProgressBy(1);
+        tactileSlider.setProgress(0);
+        tactileSlider.setPadding(PADDING_HORIZONTAL, 0, PADDING_HORIZONTAL, 0);
+        setSeekBarProgress(40, 100);
+        setSeekBarThumb(80, 80);
+        tactileSlider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) { }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) { }
+
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress,boolean fromUser) {
+                currentCount = new Double(progress) / maxCountLabel;
+                currentCountTextView.setText(CURRENT_COUNT_PREFIX + String.valueOf(currentCount));
+            }
+        });
+    }
 
 
     private void addCurrentCountTextView(LinearLayout parent) {
