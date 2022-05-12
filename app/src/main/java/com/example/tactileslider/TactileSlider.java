@@ -3,6 +3,15 @@ package com.example.tactileslider;
 // Source: https://www.coderzheaven.com/2016/08/09/custom-seekbar-in-android-with-labels-in-bottom/
 
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.Typeface;
+import android.graphics.drawable.ClipDrawable;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.InsetDrawable;
+import android.graphics.drawable.LayerDrawable;
+import android.graphics.drawable.ShapeDrawable;
+import android.graphics.drawable.shapes.OvalShape;
 import android.util.Log;
 import android.view.Gravity;
 import android.widget.LinearLayout;
@@ -11,16 +20,29 @@ import android.widget.TextView;
 
 public class TactileSlider {
 
-        int maxCount, maxCountLabel, textColor;
+        int maxCount, maxCountLabel, textColor, currentCount;
         Context mContext;
         LinearLayout mSeekLin;
         SeekBar tactileSlider;
+        TextView currentCountTextView;
+
+        private final int PADDING_HORIZONTAL = 80;
+        private final String CURRENT_COUNT_PREFIX = "Current Count: ";
+        private int PRIMARY_DARK;
+        private int PRIMARY_LIGHT;
 
         public TactileSlider(Context context, int maxCount, int maxCountLabel, int textColor) {
             this.mContext = context;
             this.maxCount = 100;
-            this.textColor = textColor;
             this.maxCountLabel = maxCountLabel;
+            this.currentCount = 0;
+            PRIMARY_DARK = mContext.getResources().getColor(R.color.grape_dark);
+            PRIMARY_LIGHT = mContext.getResources().getColor(R.color.grape_light);
+            this.textColor = PRIMARY_LIGHT;
+        }
+
+        int getCurrentCount(){
+            return this.currentCount;
         }
 
         public void addTactileSlider(LinearLayout parent) {
@@ -31,11 +53,15 @@ public class TactileSlider {
                 tactileSlider = new SeekBar(mContext);
                 tactileSlider.setMax(maxCount - 1);
                 tactileSlider.incrementProgressBy(1);
+                tactileSlider.setProgress(0);
+                tactileSlider.setPadding(PADDING_HORIZONTAL, 0, PADDING_HORIZONTAL, 0);
+                setSeekBarProgress(40, 100);
+                setSeekBarThumb(80, 80);
 
                 // Add LinearLayout for labels below SeekBar
                 mSeekLin = new LinearLayout(mContext);
                 mSeekLin.setOrientation(LinearLayout.HORIZONTAL);
-                mSeekLin.setPadding(10, 0, 10, 0);
+                mSeekLin.setPadding(PADDING_HORIZONTAL-40, 0, PADDING_HORIZONTAL-40, 0);
                 LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.MATCH_PARENT,
                         LinearLayout.LayoutParams.WRAP_CONTENT
@@ -43,9 +69,11 @@ public class TactileSlider {
                 params.setMargins(35, 10, 35, 0);
                 mSeekLin.setLayoutParams(params);
 
+                addCurrentCountTextView(parent);
                 addLabelsBelowSlider();
                 parent.addView(tactileSlider);
                 parent.addView(mSeekLin);
+
 
             } else {
 
@@ -55,7 +83,20 @@ public class TactileSlider {
 
         }
 
-        private void addLabelsBelowSlider() {
+
+
+    private void addCurrentCountTextView(LinearLayout parent) {
+        currentCountTextView = new TextView(mContext);
+        currentCountTextView.setTextSize(20f);
+        currentCountTextView.setTypeface(currentCountTextView.getTypeface(), Typeface.BOLD);
+        currentCountTextView.setPadding(PADDING_HORIZONTAL, 0, PADDING_HORIZONTAL, 80);
+        currentCountTextView.setText(CURRENT_COUNT_PREFIX + String.valueOf(currentCount));
+        parent.addView(currentCountTextView);
+
+    }
+
+
+    private void addLabelsBelowSlider() {
             for (int count = 0; count < maxCountLabel; count++) {
                 TextView textView = new TextView(mContext);
                 textView.setText(String.valueOf(count + 1));
@@ -65,6 +106,29 @@ public class TactileSlider {
                 textView.setLayoutParams((count == maxCountLabel- 1) ? getLayoutParams(0.0f) : getLayoutParams(1.0f));
             }
         }
+
+        // Sourcce: https://localcoder.org/changing-the-size-of-the-seekbar-programmatically-but-cant-get-the-thumb-to-be-l
+    private void setSeekBarProgress(int width, int height){
+        GradientDrawable shape2 = new GradientDrawable(GradientDrawable.Orientation.BOTTOM_TOP, new int[]{mContext.getResources().getColor(R.color.grape_pale), PRIMARY_LIGHT});
+        shape2.setCornerRadius(50);
+        ClipDrawable clip = new ClipDrawable(shape2, Gravity.LEFT,ClipDrawable.HORIZONTAL);
+
+        GradientDrawable shape1 = new GradientDrawable(GradientDrawable.Orientation.BOTTOM_TOP, new int[]{Color.WHITE, Color.rgb(232, 232, 232)});
+        shape1.setCornerRadius(50);//change the corners of the rectangle
+        InsetDrawable d1=  new InsetDrawable(shape1,5,5,5,5);//the padding u want to use
+
+        LayerDrawable myLayer = new LayerDrawable(new Drawable[]{d1,clip});
+        tactileSlider.setProgressDrawable(myLayer);
+
+    }
+
+    private void setSeekBarThumb(int width, int height) {
+        ShapeDrawable thumb = new ShapeDrawable(new OvalShape());
+        thumb.setIntrinsicWidth(width);
+        thumb.setIntrinsicHeight(height);
+        thumb.getPaint().setColor(PRIMARY_LIGHT);
+        tactileSlider.setThumb(thumb);
+    }
 
         LinearLayout.LayoutParams getLayoutParams(float weight) {
             return new LinearLayout.LayoutParams(
