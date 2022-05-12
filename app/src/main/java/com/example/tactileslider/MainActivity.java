@@ -19,7 +19,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         LinearLayout sliderLin = (LinearLayout) findViewById(R.id.lin1);
-        tactileSlider = new TactileSlider(this, 100, 10, Color.BLUE);
+        tactileSlider = new TactileSlider(this, 100, 10);
         tactileSlider.addTactileSlider(sliderLin);
 
     }

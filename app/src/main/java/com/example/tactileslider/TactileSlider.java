@@ -20,7 +20,8 @@ import android.widget.TextView;
 
 public class TactileSlider {
 
-        int maxCount, maxCountLabel, textColor, currentCount;
+        int steps, maxCountLabel, textColor;
+        Double currentCount;
         Context mContext;
         LinearLayout mSeekLin;
         SeekBar tactileSlider;
@@ -31,17 +32,17 @@ public class TactileSlider {
         private int PRIMARY_DARK;
         private int PRIMARY_LIGHT;
 
-        public TactileSlider(Context context, int maxCount, int maxCountLabel, int textColor) {
+        public TactileSlider(Context context, int steps, int maxCountLabel) {
             this.mContext = context;
-            this.maxCount = 100;
+            this.steps = steps + 1;
             this.maxCountLabel = maxCountLabel;
-            this.currentCount = 0;
+            this.currentCount = 0.0;
             PRIMARY_DARK = mContext.getResources().getColor(R.color.grape_dark);
             PRIMARY_LIGHT = mContext.getResources().getColor(R.color.grape_light);
             this.textColor = PRIMARY_LIGHT;
         }
 
-        int getCurrentCount(){
+        Double getCurrentCount(){
             return this.currentCount;
         }
 
@@ -51,17 +52,32 @@ public class TactileSlider {
 
                 parent.setOrientation(LinearLayout.VERTICAL);
                 tactileSlider = new SeekBar(mContext);
-                tactileSlider.setMax(maxCount - 1);
+                tactileSlider.setMax(steps - 1);
                 tactileSlider.incrementProgressBy(1);
                 tactileSlider.setProgress(0);
                 tactileSlider.setPadding(PADDING_HORIZONTAL, 0, PADDING_HORIZONTAL, 0);
                 setSeekBarProgress(40, 100);
                 setSeekBarThumb(80, 80);
+                tactileSlider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+
+                    @Override
+                    public void onStopTrackingTouch(SeekBar seekBar) { }
+
+                    @Override
+                    public void onStartTrackingTouch(SeekBar seekBar) { }
+
+                    @Override
+                    public void onProgressChanged(SeekBar seekBar, int progress,boolean fromUser) {
+                        currentCount = new Double(progress) / maxCountLabel;
+                        currentCountTextView.setText(CURRENT_COUNT_PREFIX + String.valueOf(currentCount));
+                    }
+                });
+
 
                 // Add LinearLayout for labels below SeekBar
                 mSeekLin = new LinearLayout(mContext);
                 mSeekLin.setOrientation(LinearLayout.HORIZONTAL);
-                mSeekLin.setPadding(PADDING_HORIZONTAL-40, 0, PADDING_HORIZONTAL-40, 0);
+                mSeekLin.setPadding(PADDING_HORIZONTAL-40, 0, PADDING_HORIZONTAL-54, 0);
                 LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.MATCH_PARENT,
                         LinearLayout.LayoutParams.WRAP_CONTENT
@@ -97,13 +113,13 @@ public class TactileSlider {
 
 
     private void addLabelsBelowSlider() {
-            for (int count = 0; count < maxCountLabel; count++) {
+            for (int count = 0; count < maxCountLabel + 1; count++) {
                 TextView textView = new TextView(mContext);
-                textView.setText(String.valueOf(count + 1));
+                textView.setText(String.valueOf(count));
                 textView.setTextColor(textColor);
                 textView.setGravity(Gravity.LEFT);
                 mSeekLin.addView(textView);
-                textView.setLayoutParams((count == maxCountLabel- 1) ? getLayoutParams(0.0f) : getLayoutParams(1.0f));
+                textView.setLayoutParams((count == maxCountLabel) ? getLayoutParams(0.0f) : getLayoutParams(1.0f));
             }
         }
 
