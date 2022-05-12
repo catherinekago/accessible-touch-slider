@@ -11,15 +11,16 @@ import android.widget.TextView;
 
 public class TactileSlider {
 
-        int maxCount, textColor;
+        int maxCount, maxCountLabel, textColor;
         Context mContext;
         LinearLayout mSeekLin;
         SeekBar tactileSlider;
 
-        public TactileSlider(Context context, int maxCount, int textColor) {
+        public TactileSlider(Context context, int maxCount, int maxCountLabel, int textColor) {
             this.mContext = context;
-            this.maxCount = maxCount;
+            this.maxCount = 100;
             this.textColor = textColor;
+            this.maxCountLabel = maxCountLabel;
         }
 
         public void addTactileSlider(LinearLayout parent) {
@@ -29,6 +30,7 @@ public class TactileSlider {
                 parent.setOrientation(LinearLayout.VERTICAL);
                 tactileSlider = new SeekBar(mContext);
                 tactileSlider.setMax(maxCount - 1);
+                tactileSlider.incrementProgressBy(1);
 
                 // Add LinearLayout for labels below SeekBar
                 mSeekLin = new LinearLayout(mContext);
@@ -54,13 +56,13 @@ public class TactileSlider {
         }
 
         private void addLabelsBelowSlider() {
-            for (int count = 0; count < maxCount; count++) {
+            for (int count = 0; count < maxCountLabel; count++) {
                 TextView textView = new TextView(mContext);
                 textView.setText(String.valueOf(count + 1));
                 textView.setTextColor(textColor);
                 textView.setGravity(Gravity.LEFT);
                 mSeekLin.addView(textView);
-                textView.setLayoutParams((count == maxCount - 1) ? getLayoutParams(0.0f) : getLayoutParams(1.0f));
+                textView.setLayoutParams((count == maxCountLabel- 1) ? getLayoutParams(0.0f) : getLayoutParams(1.0f));
             }
         }
 
