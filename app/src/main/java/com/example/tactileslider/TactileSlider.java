@@ -17,21 +17,27 @@ import android.graphics.drawable.shapes.OvalShape;
 import android.os.Vibrator;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
+
 public class TactileSlider {
 
-        int steps, maxCountLabel, textColor;
+    int steps, maxCountLabel, textColor;
         Double currentCount;
         Context mContext;
         LinearLayout mSeekLin;
         SeekBar tactileSlider;
-        TextView currentCountTextView;
+        TextView currentPairs, currentTargetTextView, resultTextView;;
 
         private final int PADDING_HORIZONTAL = 80;
-        private final String CURRENT_COUNT_PREFIX = "Current Count: ";
+        private final String CURRENT_PAIRS_PREFIX = "Current Pairs (value, time[ms]): ";
+        private final String CURRENT_TARGET_PREFIX = "Current Target: ";
+        private final String RESULT_PREFIX = "Last measurement ";
         private int PRIMARY_DARK;
         private int PRIMARY_LIGHT;
 
@@ -41,7 +47,12 @@ public class TactileSlider {
         final long[] PATTERN_TICK = {0, 100};
         final long[] PATTERN_ENDPOINT = {0, 300};
 
-        public TactileSlider(Context context, int steps, int maxCountLabel) {
+        // Slider time measurement
+        // TODO: how to setup a timer object;
+        private UserData userData;
+        private long currentStartTime;
+
+        public TactileSlider(Context context, int steps, int maxCountLabel, UserData userData) {
             this.mContext = context;
             this.steps = steps + 1;
             this.maxCountLabel = maxCountLabel;
@@ -50,6 +61,10 @@ public class TactileSlider {
             PRIMARY_LIGHT = mContext.getResources().getColor(R.color.grape_light);
             this.textColor = PRIMARY_LIGHT;
             vibrator = (Vibrator) context.getSystemService(VIBRATOR_SERVICE);
+            this.userData = userData;
+            this.currentTargetTextView = new TextView(mContext);
+            this.resultTextView = new TextView(mContext);
+            this.currentPairs = new TextView(mContext);
         }
 
         Double getCurrentCount(){
@@ -71,20 +86,26 @@ public class TactileSlider {
                         LinearLayout.LayoutParams.WRAP_CONTENT
                 );
                 params.setMargins(35, 10, 35, 0);
+                params.width = 1150;
                 mSeekLin.setLayoutParams(params);
 
-                addCurrentCountTextView(parent);
+                addTextView(parent, currentTargetTextView, CURRENT_TARGET_PREFIX + String.valueOf(userData.getCurrentTargetList().get(userData.getCurrentTargetIndex())));
+                ArrayList<String> pairsAsStrings = new ArrayList<String>();
+                for (MeasurementPair pair : userData.getLastMeasurement().getMeasurementPairs()){
+                    pairsAsStrings.add(pair.getValue() + " - " + pair.getTimestamp());
+                }
+
                 addLabelsBelowSlider();
                 parent.addView(tactileSlider);
                 parent.addView(mSeekLin);
+                addTextView(parent, resultTextView, "Touch slider to start measurement");
+                addTextView(parent, currentPairs, CURRENT_PAIRS_PREFIX + pairsAsStrings);
 
 
             } else {
 
                 Log.e("TactileSlider", " Parent is not a LinearLayout");
-
             }
-
         }
 
     private void setUpTactileSlider(LinearLayout parent) {
@@ -94,21 +115,55 @@ public class TactileSlider {
         tactileSlider.incrementProgressBy(1);
         tactileSlider.setProgress(0);
         tactileSlider.setPadding(PADDING_HORIZONTAL, 0, PADDING_HORIZONTAL, 0);
-        setSeekBarProgress(40, 100);
+
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        params.width = 1220;
+        tactileSlider.setLayoutParams(params);
+
+        setSeekBarProgress(472, 30);
         setSeekBarThumb(80, 80);
         tactileSlider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
 
             @Override
-            public void onStopTrackingTouch(SeekBar seekBar) { }
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                // Get measured time
+                long currentStopTime = System.nanoTime();
+                long completionTime = currentStopTime - currentStartTime;
+                completionTime = TimeUnit.NANOSECONDS.toMillis(completionTime);
+                userData.getLastMeasurement().setCompletionTime(completionTime);
+                userData.getLastMeasurement().setInput(currentCount);
+                resultTextView.setText(RESULT_PREFIX + "          Target: " + userData.getLastMeasurement().getTarget()+ "         Input: " + userData.getLastMeasurement().getInput() + "         CT: " + userData.getLastMeasurement().getCompletionTime() + "ms");
+                // reset currentCount and increment currentTargetIndex
+                currentCount = 0.00;
+                if (userData.getCurrentTargetIndex() < userData.getCurrentTargetList().size()-1){
+                    userData.incrementCurrentTargetIndex();
+                    userData.addMeasurement(userData.getCurrentTargetList().get(userData.getCurrentTargetIndex()));
+                    currentTargetTextView.setText(CURRENT_TARGET_PREFIX + String.valueOf(userData.getCurrentTargetList().get(userData.getCurrentTargetIndex())));
+                    // TODO: voice output of next target
+                } else {
+                    //TODO: celebration
+                    parent.setVisibility(View.INVISIBLE);
+                }
+                //Set progress to 0
+                tactileSlider.setProgress(0);
+                userData.getLastMeasurement().removeLastMeasurementPair();
+                currentPairs.setText(CURRENT_PAIRS_PREFIX);
+            }
 
             @Override
-            public void onStartTrackingTouch(SeekBar seekBar) { }
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                // Start a new Measurement by adding a new Measurement to the userData MeasurementList
+                currentStartTime = System.nanoTime();
+                resultTextView.setText("... ongoing ...");
+                currentPairs.setText(CURRENT_PAIRS_PREFIX + String.valueOf(userData.getLastMeasurement().getMeasurementPairs()));
+            }
 
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress,boolean fromUser) {
                 currentCount = new Double(progress) / maxCountLabel;
-                currentCountTextView.setText(CURRENT_COUNT_PREFIX + String.valueOf(currentCount));
-
                 if (currentCount % 1 == 0){
                     switch ((int) Math.round(currentCount)){
                         case 0:
@@ -120,20 +175,28 @@ public class TactileSlider {
                             vibrator.vibrate(PATTERN_TICK, -1);
                         }
                     }
+                // Get current timestamp and add new measurementPair
+                long timestamp = System.nanoTime() - currentStartTime;
+                timestamp = TimeUnit.NANOSECONDS.toMillis(timestamp);
+                userData.getLastMeasurement().addMeasurementPair(currentCount, timestamp);
+                ArrayList<String> pairsAsStrings = new ArrayList<String>();
+                for (MeasurementPair pair : userData.getLastMeasurement().getMeasurementPairs()){
+                    pairsAsStrings.add(pair.getValue() + " - " + pair.getTimestamp());
+                }
+
+                currentPairs.setText(CURRENT_PAIRS_PREFIX + pairsAsStrings);
                 }
 
         });
     }
 
 
-    private void addCurrentCountTextView(LinearLayout parent) {
-        currentCountTextView = new TextView(mContext);
-        currentCountTextView.setTextSize(20f);
-        currentCountTextView.setTypeface(currentCountTextView.getTypeface(), Typeface.BOLD);
-        currentCountTextView.setPadding(PADDING_HORIZONTAL, 0, PADDING_HORIZONTAL, 80);
-        currentCountTextView.setText(CURRENT_COUNT_PREFIX + String.valueOf(currentCount));
-        parent.addView(currentCountTextView);
-
+    private void addTextView(LinearLayout parent, TextView textView, String text) {
+        textView.setTextSize(20f);
+        textView.setTypeface(textView.getTypeface(), Typeface.BOLD);
+        textView.setPadding(PADDING_HORIZONTAL, 80, PADDING_HORIZONTAL, 80);
+        textView.setText(text);
+        parent.addView(textView);
     }
 
 
@@ -155,6 +218,7 @@ public class TactileSlider {
         ClipDrawable clip = new ClipDrawable(shape2, Gravity.LEFT,ClipDrawable.HORIZONTAL);
 
         GradientDrawable shape1 = new GradientDrawable(GradientDrawable.Orientation.BOTTOM_TOP, new int[]{Color.WHITE, Color.rgb(232, 232, 232)});
+        shape1.setSize(width, height);
         shape1.setCornerRadius(50);//change the corners of the rectangle
         InsetDrawable d1=  new InsetDrawable(shape1,5,5,5,5);//the padding u want to use
 
