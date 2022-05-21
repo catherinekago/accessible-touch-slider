@@ -1,7 +1,13 @@
 package com.example.tactileslider;
 
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 public class UserData {
 
@@ -54,6 +60,29 @@ public class UserData {
 
     public Measurement getLastMeasurement(){
         return measurementList.get(measurementList.size()-1);
+    }
+
+    public void pushDataToDatabase() {
+        FirebaseFirestore firebase = FirebaseFirestore.getInstance();
+        CollectionReference collectionRef = firebase.collection(userID);
+
+        ArrayList<Measurement> test = measurementList;
+        Map<String, Object> measurement = new HashMap<>();
+        Measurement lastMeasurement = this.getLastMeasurement();
+        measurement.put("target", lastMeasurement.getTarget());
+        measurement.put("input", lastMeasurement.getInput());
+        measurement.put("error", lastMeasurement.getError());
+        measurement.put("completionTime", lastMeasurement.getCompletionTime());
+
+        ArrayList<Map> measurementPairs = new ArrayList<>();
+        for(int i=0; i < getLastMeasurement().getMeasurementPairs().size(); i++) {
+            Map<String, Object> measurementPair = new HashMap<>();
+            measurementPair.put("value", getLastMeasurement().getMeasurementPairs().get(i).getValue());
+            measurementPair.put("target", getLastMeasurement().getMeasurementPairs().get(i).getTimestamp());
+            measurementPairs.add(measurementPair);
+        }
+        measurement.put("measurementPairs", measurementPairs);
+        collectionRef.document("pair_" + currentTargetIndex).set(measurement);
     }
 
 }

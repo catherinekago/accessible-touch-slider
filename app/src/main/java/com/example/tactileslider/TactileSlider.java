@@ -32,7 +32,7 @@ public class TactileSlider {
         Context mContext;
         LinearLayout mSeekLin;
         SeekBar tactileSlider;
-        TextView currentPairs, currentTargetTextView, resultTextView;;
+        TextView currentPairs, currentTargetTextView, resultTextView;
 
         private final int PADDING_HORIZONTAL = 80;
         private final String CURRENT_PAIRS_PREFIX = "Current Pairs (value, time[ms]): ";
@@ -130,14 +130,17 @@ public class TactileSlider {
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
                 // Get measured time
-                long currentStopTime = System.nanoTime();
-                long completionTime = currentStopTime - currentStartTime;
-                completionTime = TimeUnit.NANOSECONDS.toMillis(completionTime);
+                Long completionTime = (long) userData.getLastMeasurement().getMeasurementPairs().get(userData.getLastMeasurement().getMeasurementPairs().size()-1).getTimestamp();
                 userData.getLastMeasurement().setCompletionTime(completionTime);
                 userData.getLastMeasurement().setInput(currentCount);
                 resultTextView.setText(RESULT_PREFIX + "          Target: " + userData.getLastMeasurement().getTarget()+ "         Input: " + userData.getLastMeasurement().getInput() + "         CT: " + userData.getLastMeasurement().getCompletionTime() + "ms");
                 // reset currentCount and increment currentTargetIndex
                 currentCount = 0.00;
+                //Set progress to 0
+                tactileSlider.setProgress(0);
+                userData.getLastMeasurement().removeLastMeasurementPair();
+                currentPairs.setText(CURRENT_PAIRS_PREFIX);
+                userData.pushDataToDatabase();
                 if (userData.getCurrentTargetIndex() < userData.getCurrentTargetList().size()-1){
                     userData.incrementCurrentTargetIndex();
                     userData.addMeasurement(userData.getCurrentTargetList().get(userData.getCurrentTargetIndex()));
@@ -147,10 +150,8 @@ public class TactileSlider {
                     //TODO: celebration
                     parent.setVisibility(View.INVISIBLE);
                 }
-                //Set progress to 0
-                tactileSlider.setProgress(0);
-                userData.getLastMeasurement().removeLastMeasurementPair();
-                currentPairs.setText(CURRENT_PAIRS_PREFIX);
+
+
             }
 
             @Override

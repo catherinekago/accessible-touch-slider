@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "596968017093",
+    "project_id": "tactile-slider",
+    "storage_bucket": "tactile-slider.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:596968017093:android:19d7ff379cc49fd29034ac",
+        "android_client_info": {
+          "package_name": "com.example.tactileslider"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "596968017093-tla5gvun4njkm72291dkhmf2igqj0nbv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAXescgdL177-c2eUToWuhDntbpqmkuhbs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "596968017093-tla5gvun4njkm72291dkhmf2igqj0nbv.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
