@@ -25,10 +25,10 @@ public class TactileArea {
     private int xTouch;
     private int yTouch;
 
-    private MainActivity mainActivity;
+    private SliderAreaActivity mainActivity;
 
 
-    public TactileArea(MainActivity mainActivity, UserData userData) {
+    public TactileArea(SliderAreaActivity mainActivity, UserData userData) {
 
         this.mainActivity = mainActivity;
         sliderView = mainActivity.findViewById(R.id.sliderView);

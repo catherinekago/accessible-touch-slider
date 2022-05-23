@@ -4,12 +4,13 @@ import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-public class UserData {
+public class UserData implements Serializable {
 
     private String userID;
     private ArrayList<Measurement> measurementList = new ArrayList<Measurement>();
@@ -83,6 +84,10 @@ public class UserData {
         }
         measurement.put("measurementPairs", measurementPairs);
         collectionRef.document("pair_" + currentTargetIndex).set(measurement);
+    }
+
+    public String getUserId(){
+        return this.userID;
     }
 
 }

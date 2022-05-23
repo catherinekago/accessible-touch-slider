@@ -48,7 +48,6 @@ public class TactileSlider {
         final long[] PATTERN_ENDPOINT = {0, 300};
 
         // Slider time measurement
-        // TODO: how to setup a timer object;
         private UserData userData;
         private long currentStartTime;
 

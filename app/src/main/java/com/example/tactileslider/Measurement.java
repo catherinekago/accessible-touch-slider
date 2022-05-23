@@ -4,10 +4,11 @@ import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 // The Measurement Class holds all relevant data of one measurement
-public class Measurement {
+public class Measurement implements Serializable {
 
     private double target;
     private double input;
@@ -51,7 +52,7 @@ public class Measurement {
 
 // The MeasurementPair class holds the value-timestamp pairs that occurred during the measurements,
 // for more detailed analysis.
-class MeasurementPair {
+class MeasurementPair implements Serializable{
     private double value;
     private double timestamp;
 
