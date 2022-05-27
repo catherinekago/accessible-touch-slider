@@ -4,6 +4,8 @@ import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.media.SoundPool;
 import android.os.Build;
+import android.view.MotionEvent;
+import android.view.View;
 import android.widget.Button;
 
 public class AudioFeedback {
@@ -26,3 +28,4 @@ public class AudioFeedback {
         return soundPool;
     }
 }
+

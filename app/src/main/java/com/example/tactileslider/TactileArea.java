@@ -16,22 +16,22 @@ public class TactileArea {
 
     View sliderView;
     TextView coorinatesView;
-    private final String COORD_PREFIX ="Touch Coordinates:   ";
+    private final String COORD_PREFIX ="Touch Input:   ";
     private int heightTactileArea;
     private int heightTopBar;
     private ArrayList<Integer> likertYCoords = new ArrayList<Integer>();
+    private int likertSpacing;
     private final int LIKERT_PADDING = 5;
     private ArrayList<LikertItem> likertItems = new ArrayList<LikertItem>();
-    private double viewTopBorder;
-    private double viewBottomBorder;
-    private int xTouch;
-    private int yTouch;
+    private double userInputValue = 0.0;
     private int soundId;
 
     // Audio Feedback
     private AudioFeedback audioFeedback;
     private final float MIN_FREQ = 0.5F;
     private final float MAX_FREQ = 2.0F;
+    private long lastPlayTime = 0;
+    private final long MIN_PAUSE = 300;
 
     private SliderAreaActivity mainActivity;
 
@@ -101,18 +101,18 @@ public class TactileArea {
      * @return an arraylist of all y coordinates of the seven Likert scale item positions
      */
     private ArrayList<Integer> calculateLikertYCords(double heightTopBar, double heightTactileArea) {
-        int spacingTactileArea = (int) (heightTactileArea / 6);
+        this.likertSpacing = (int) (heightTactileArea / 6);
         ArrayList<Integer> likertYCoords = new ArrayList<Integer>();
         for (int i = 0; i < 7; i++){
-            likertYCoords.add((int) heightTopBar + (i*spacingTactileArea));
+            likertYCoords.add((int) heightTopBar + (i*likertSpacing));
         }
         return likertYCoords;
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
-    public void handleTouchEvent(int xTouch, int yTouch){
-        setxTouch(xTouch);
-        setyTouch(yTouch);
+    public void handleTouchEvent(int xTouch, int yTouch, UserData userData, long taskStart){
+        userInputValue = calculateLikertValue(yTouch);
+        // todo: add
         if (yTouch < heightTopBar || yTouch > heightTopBar + heightTactileArea){
             coorinatesView.setText(COORD_PREFIX +  "out of bounds");
         } else {
@@ -122,21 +122,24 @@ public class TactileArea {
                     int index = likertYCoords.indexOf(value);
                     LikertItem crossedItem = likertItems.get(index);
                     sliderView.getBackground().setAlpha(crossedItem.getAlphaValue());
-                    audioFeedback.getSoundPool().play(soundId, 1F, 1F, 1, 0, crossedItem.getFrequencyValue());
-                    coorinatesView.setText(COORD_PREFIX + "(" + xTouch + ", " + yTouch + ")");
-                    return;
+                    coorinatesView.setText(COORD_PREFIX + userInputValue);
+                    if (System.currentTimeMillis() > MIN_PAUSE + lastPlayTime){
+                        audioFeedback.getSoundPool().play(soundId, 1F, 1F, 1, 0, crossedItem.getFrequencyValue());
+                        lastPlayTime = System.currentTimeMillis();
+                    }
+                    break;
                 }
             }
-            coorinatesView.setText(COORD_PREFIX + "(" + xTouch + ", " + yTouch + ")");
+            coorinatesView.setText(COORD_PREFIX + userInputValue);
+            // Write measurementPair to userData
+            //userData.getLastMeasurement().addMeasurementPair(System.currentTimeMillis() - taskStart, yTouch);
         }
     }
 
-
-    public void setxTouch(int xTouch) {
-        this.xTouch = xTouch;
-    }
-
-    public void setyTouch(int yTouch) {
-        this.yTouch = yTouch;
+    private double calculateLikertValue(int yTouch) {
+        double likertValue = ((yTouch - heightTopBar) * 1.0 / heightTactileArea) * 6.0 + 1.0;
+        return Math.round(likertValue * 100.0) / 100.0;
     }
 }
+
+
