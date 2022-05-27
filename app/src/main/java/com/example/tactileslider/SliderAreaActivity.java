@@ -38,6 +38,8 @@ public class SliderAreaActivity extends AppCompatActivity {
 
         View.OnTouchListener getCoordinates = setUpTouchListener();
         findViewById(R.id.mainView).setOnTouchListener(getCoordinates);
+
+
     }
 
     // Setup touch listener to determine the coordinates of the touch event to handle it accordingly
