@@ -6,12 +6,19 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
+import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Set;
 
 public class SliderAreaActivity extends AppCompatActivity {
 
@@ -41,6 +48,8 @@ public class SliderAreaActivity extends AppCompatActivity {
     private int soundIdCompletion;
     private int soundIdDoubleTap;
     private int soundIdLongClick;
+    private TextToSpeech ttsObject;
+    private boolean tasksStarted = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +79,16 @@ public class SliderAreaActivity extends AppCompatActivity {
         this.soundIdCompletion = audioFeedback.getSoundPool().load(this, R.raw.completion_sound, 1);
         this.soundIdDoubleTap = audioFeedback.getSoundPool().load(this, R.raw.doubletap, 1);
         this.soundIdLongClick = audioFeedback.getSoundPool().load(this, R.raw.longclick, 1);
+        
+        // Setup tts component
+        this.ttsObject =new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+            }
+        });
+        Locale german = new Locale("de", "DE");
+        ttsObject.setLanguage(german);
+
     }
 
     // Setup touch listener to determine the coordinates of the touch event to handle it accordingly
@@ -88,10 +107,12 @@ public class SliderAreaActivity extends AppCompatActivity {
                         case MotionEvent.ACTION_DOWN:
                             //Handle double click
                             if (clickTime - lastClickTime < DOUBLE_CLICK_TIME_DELTA) {
-                                if (!taskCompleted){
+                                if (tasksStarted && !taskCompleted){
                                     handleValueSelection();
-                                } else {
+                                } else  if (tasksStarted && taskCompleted){
                                     continueWithNextTask();
+                                } else if (!tasksStarted){
+                                    startFirstTask();
                                 }
                             }
                             lastClickTime = clickTime;
@@ -112,15 +133,41 @@ public class SliderAreaActivity extends AppCompatActivity {
         return handleTouch;
     }
 
+    // Initialize first task
+    private void startFirstTask() {
+        audioFeedback.getSoundPool().play(soundIdDoubleTap, 0.5F, 0.5F, 1, 0, 1);
+        readAloudTarget();
+        tasksStarted = true;
+    }
+
+    // Generate speech output to read aloud task
+    private void readAloudTarget(){
+        int target = (int) Math.round(userData.getCurrentTargetList().get(userData.getCurrentTargetIndex()));
+        String toSpeak = "Bitte wählen Sie die " + target + ".";
+        final int interval = 2000; // 1 Second
+        Handler handler = new Handler();
+        Runnable runnable = new Runnable(){
+            public void run() {
+                HashMap<String, String> params = new HashMap<String, String>();
+                params.put(TextToSpeech.Engine.KEY_PARAM_VOLUME, "0.05");
+                ttsObject.speak(toSpeak, TextToSpeech.QUEUE_FLUSH, params);
+            }
+        };
+        handler.postAtTime(runnable, System.currentTimeMillis()+interval);
+        handler.postDelayed(runnable, interval);
+
+    }
+
     // Accesses the next target within the userData target list and starts speech output
     private void continueWithNextTask() {
         if (userData.getCurrentTargetIndex() + 1 < userData.getCurrentTargetList().size()){
             userData.incrementCurrentTargetIndex();
             userData.addMeasurement(userData.getCurrentTargetList().get(userData.getCurrentTargetIndex()));
             taskCompleted = false;
-            audioFeedback.getSoundPool().play(soundIdDoubleTap, 1F, 1F, 1, 0, 1);
+            audioFeedback.getSoundPool().play(soundIdDoubleTap, 0.5F, 0.5F, 1, 0, 1);
+            readAloudTarget();
         } else {
-            audioFeedback.getSoundPool().play(soundIdCompletion, 1F, 1F, 1, 0, 1);
+            audioFeedback.getSoundPool().play(soundIdCompletion, 0.5F, 0.5F, 1, 0, 1);
             final String[] userId = userData.getUserId().split("_" + feedbackMode);
             userData.setUserID(userId[0]);
             finish();
@@ -128,6 +175,7 @@ public class SliderAreaActivity extends AppCompatActivity {
 
     }
 
+    // Setup long click listener for slider dragging interaction
     private View.OnLongClickListener setUpLongClickListener (){
         View.OnLongClickListener handleLongClick = new View.OnLongClickListener() {
 
