@@ -6,7 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
+import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -30,11 +30,16 @@ public class SliderAreaActivity extends AppCompatActivity {
     private Context context;
 
     // Touch Gestures
-    private static final long DOUBLE_CLICK_TIME_DELTA = 300;//milliseconds
+    private static final long DOUBLE_CLICK_TIME_DELTA = 300; //milliseconds
     long lastClickTime = 0;
     private boolean isLongClick = false;
 
     private long startTask = 0;
+    private Vibrator vibrator;
+    private boolean taskCompleted = false;
+    private AudioFeedback audioFeedback;
+    private int soundIdCompletion;
+    private int soundIdDoubleTap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,12 +54,20 @@ public class SliderAreaActivity extends AppCompatActivity {
         //tactileSlider.addTactileSlider(sliderLin);
 
         this.context = this;
-        tactileArea = new TactileArea(this, userData);
+        tactileArea = new TactileArea(this, userData, feedbackMode);
 
         View.OnTouchListener getCoordinates = setUpTapAndMotionListener();
         findViewById(R.id.mainView).setOnTouchListener(getCoordinates);
         View.OnLongClickListener detectLongPress = setUpLongClickListener();
         findViewById(R.id.mainView).setOnLongClickListener(detectLongPress);
+
+        // Setup vibration
+        vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+
+        // Setup audio success sound
+        this.audioFeedback = new AudioFeedback();
+        this.soundIdCompletion = audioFeedback.getSoundPool().load(this, R.raw.completion_sound, 1);
+        this.soundIdDoubleTap = audioFeedback.getSoundPool().load(this, R.raw.doubletap, 1);
 
     }
 
@@ -74,15 +87,17 @@ public class SliderAreaActivity extends AppCompatActivity {
                         case MotionEvent.ACTION_DOWN:
                             //Handle double click
                             if (clickTime - lastClickTime < DOUBLE_CLICK_TIME_DELTA) {
-                                Toast.makeText(context, "double", Toast.LENGTH_SHORT).show();
-                                handleValueSelection();
+                                if (!taskCompleted){
+                                    handleValueSelection();
+                                } else {
+                                    continueWithNextTask();
+                                }
                             }
                             lastClickTime = clickTime;
                             break;
                         case MotionEvent.ACTION_MOVE:
                             if (isLongClick){
-                                Log.i("TAG", "moving: (" + xTouch + ", " + yTouch + ")");
-                                tactileArea.handleTouchEvent(xTouch, yTouch, userData, startTask);
+                                    tactileArea.handleTouchEvent(xTouch, yTouch, userData, startTask);
                             }
                             break;
                         case MotionEvent.ACTION_UP:
@@ -96,17 +111,44 @@ public class SliderAreaActivity extends AppCompatActivity {
         return handleTouch;
     }
 
+    // Accesses the next target within the userData target list and starts speech output
+    private void continueWithNextTask() {
+        if (userData.getCurrentTargetIndex() + 1 < userData.getCurrentTargetList().size()){
+            userData.incrementCurrentTargetIndex();
+            userData.addMeasurement(userData.getCurrentTargetList().get(userData.getCurrentTargetIndex()));
+            taskCompleted = false;
+            audioFeedback.getSoundPool().play(soundIdDoubleTap, 1F, 1F, 1, 0, 1);
+        } else {
+            audioFeedback.getSoundPool().play(soundIdCompletion, 1F, 1F, 1, 0, 1);
+            final String[] userId = userData.getUserId().split("_" + feedbackMode);
+            userData.setUserID(userId[0]);
+            finish();
+        }
+
+    }
+
     private View.OnLongClickListener setUpLongClickListener (){
         View.OnLongClickListener handleLongClick = new View.OnLongClickListener() {
 
             @Override
             public boolean onLongClick(View view) {
-                if (!isLongClick){
+                if (!isLongClick && !taskCompleted){
                     isLongClick = true;
-                    Toast.makeText(context, "longclick", Toast.LENGTH_SHORT).show();
-                    // TODO start completionTimer and record values
-                    // TODO add audio feedback that user has been recognized
-                    // startTask = System.currentTimeMillis();
+                    if (feedbackMode.equals(AUDIO)){
+                        // Haptic feedback that slider is activated
+                        VibrationEffect effect = null;
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                            effect = VibrationEffect.createOneShot(150, 85);
+                            vibrator.vibrate(effect);
+                        }
+                    } else {
+                        // TODO: Audio feedback that slider is activated?
+                    }
+
+
+                    // start completionTimer and record values
+                    startTask = System.currentTimeMillis();
+
                 }
                 return false;
             }
@@ -116,11 +158,20 @@ public class SliderAreaActivity extends AppCompatActivity {
 
     }
 
+    // When value has been successfully selected, provide feedback, reset values, and
+    // update userData model
     private void handleValueSelection() {
-        UserData data = userData;
-        data.getLastMeasurement().removeLastMeasurementPair();
-        data.getLastMeasurement().removeLastMeasurementPair();
-        UserData cleanedUserData = data;
+        audioFeedback.getSoundPool().play(soundIdDoubleTap, 1F, 1F, 1, 0, 1);
+        taskCompleted = true;
+        startTask = 0;
+
+        // Set input value
+        userData.getLastMeasurement().setInput(userData.getLastMeasurement().getMeasurementPairs().get(userData.getLastMeasurement().getMeasurementPairs().size()-1).getValue());
+        // Set completion time value
+        userData.getLastMeasurement().setCompletionTime((long) userData.getLastMeasurement().getMeasurementPairs().get(userData.getLastMeasurement().getMeasurementPairs().size()-1).getTimestamp());
+
+        userData.pushDataToDatabase();
+
     }
 
     ;

@@ -5,6 +5,8 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 
 // The Measurement Class holds all relevant data of one measurement
@@ -22,7 +24,9 @@ public class Measurement implements Serializable {
     public void setInput(double input) {
         this.input = input;
         // Calculate error
-        setError(this.target - this.input);
+        double error = this.target - this.input;
+        BigDecimal errorBD = new BigDecimal(error).setScale(2, RoundingMode.HALF_UP);
+        setError(errorBD.doubleValue());
     }
     public double getInput() { return input; }
 
@@ -34,7 +38,7 @@ public class Measurement implements Serializable {
     public long getCompletionTime() { return completionTime; }
     public void setCompletionTime(long completionTime) { this.completionTime = completionTime; }
 
-    public void addMeasurementPair(double value, double timestamp) {
+    public void addMeasurementPair(double value, long timestamp) {
         MeasurementPair newPair = new MeasurementPair(value, timestamp);
         this.measurementPairs.add(newPair);
     }
@@ -54,9 +58,9 @@ public class Measurement implements Serializable {
 // for more detailed analysis.
 class MeasurementPair implements Serializable{
     private double value;
-    private double timestamp;
+    private long timestamp;
 
-    public MeasurementPair(double value, double timestamp){
+    public MeasurementPair(double value, long timestamp){
         this.value = value;
         this.timestamp = timestamp;
     }
@@ -65,7 +69,7 @@ class MeasurementPair implements Serializable{
         return value;
     }
 
-    public double getTimestamp() {
+    public long getTimestamp() {
         return timestamp;
     }
 }

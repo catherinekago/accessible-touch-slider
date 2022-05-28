@@ -54,6 +54,10 @@ public class UserData implements Serializable {
         return list;
     }
 
+    public void setUserID(String userID) {
+        this.userID = userID;
+    }
+
     public void addMeasurement(double target){
         Measurement newMeasurement = new Measurement(target);
         measurementList.add(newMeasurement);
@@ -67,7 +71,6 @@ public class UserData implements Serializable {
         FirebaseFirestore firebase = FirebaseFirestore.getInstance();
         CollectionReference collectionRef = firebase.collection(userID);
 
-        ArrayList<Measurement> test = measurementList;
         Map<String, Object> measurement = new HashMap<>();
         Measurement lastMeasurement = this.getLastMeasurement();
         measurement.put("target", lastMeasurement.getTarget());
@@ -79,11 +82,11 @@ public class UserData implements Serializable {
         for(int i=0; i < getLastMeasurement().getMeasurementPairs().size(); i++) {
             Map<String, Object> measurementPair = new HashMap<>();
             measurementPair.put("value", getLastMeasurement().getMeasurementPairs().get(i).getValue());
-            measurementPair.put("target", getLastMeasurement().getMeasurementPairs().get(i).getTimestamp());
+            measurementPair.put("timestamp", getLastMeasurement().getMeasurementPairs().get(i).getTimestamp());
             measurementPairs.add(measurementPair);
         }
         measurement.put("measurementPairs", measurementPairs);
-        collectionRef.document("pair_" + currentTargetIndex).set(measurement);
+        collectionRef.document("task_" + currentTargetIndex).set(measurement);
     }
 
     public String getUserId(){
