@@ -40,6 +40,7 @@ public class SliderAreaActivity extends AppCompatActivity {
     private AudioFeedback audioFeedback;
     private int soundIdCompletion;
     private int soundIdDoubleTap;
+    private int soundIdLongClick;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,7 +69,7 @@ public class SliderAreaActivity extends AppCompatActivity {
         this.audioFeedback = new AudioFeedback();
         this.soundIdCompletion = audioFeedback.getSoundPool().load(this, R.raw.completion_sound, 1);
         this.soundIdDoubleTap = audioFeedback.getSoundPool().load(this, R.raw.doubletap, 1);
-
+        this.soundIdLongClick = audioFeedback.getSoundPool().load(this, R.raw.longclick, 1);
     }
 
     // Setup touch listener to determine the coordinates of the touch event to handle it accordingly
@@ -142,10 +143,8 @@ public class SliderAreaActivity extends AppCompatActivity {
                             vibrator.vibrate(effect);
                         }
                     } else {
-                        // TODO: Audio feedback that slider is activated?
+                        audioFeedback.getSoundPool().play(soundIdLongClick, 1F, 1F, 1, 0, 1);
                     }
-
-
                     // start completionTimer and record values
                     startTask = System.currentTimeMillis();
 
