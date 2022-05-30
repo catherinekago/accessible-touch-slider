@@ -7,26 +7,44 @@
     android:layout_margin="40dp"
     tools:context=".StartActivity">
 
-    <TextView
-        android:id="@+id/idText"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/topTextLayout"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="40dp"
-        android:text="Wählen Sie eine ID"
-        android:textColor="@color/black"
-        android:textSize="20sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:orientation="horizontal"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/idText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="0dp"
+            android:text="Wählen Sie eine ID"
+            android:textColor="@color/black"
+            android:textSize="20sp" />
+
+        <TextView
+            android:id="@+id/bluetoothConnection"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="0dp"
+            android:layout_weight="1"
+            android:text="..."
+            android:textAlignment="textEnd"
+            android:textColor="@color/black"
+            android:textSize="20sp" />
+    </LinearLayout>
 
     <Button
-        android:id="@+id/buttonAudio"
+        android:id="@+id/buttonAudioApp"
         android:layout_width="0dp"
         android:layout_height="80dp"
         android:layout_marginTop="100dp"
-        android:text=" Audio Feedback"
+        android:text="APP Audio"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/idText"
+        app:layout_constraintTop_toBottomOf="@id/topTextLayout"
         tools:visibility="invisible" />
 
     <Button
@@ -41,15 +59,37 @@
         tools:visibility="visible" />
 
     <Button
-        android:id="@+id/buttonHaptic"
+        android:id="@+id/buttonHapticApp"
         android:layout_width="0dp"
         android:layout_height="80dp"
         android:layout_marginTop="24dp"
-        android:text=" Haptisches Feedback"
+        android:text="APP Haptisch"
         android:visibility="invisible"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/buttonAudio" />
+        app:layout_constraintTop_toBottomOf="@id/buttonAudioApp" />
+
+    <Button
+        android:id="@+id/buttonAudioPhysical"
+        android:layout_width="0dp"
+        android:layout_height="80dp"
+        android:layout_marginTop="40dp"
+        android:text="PHYSICAL Audio"
+        android:visibility="invisible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/buttonHapticApp" />
+
+    <Button
+        android:id="@+id/buttonHapticPhysical"
+        android:layout_width="0dp"
+        android:layout_height="80dp"
+        android:layout_marginTop="24dp"
+        android:text="PHYSICAL Haptisch"
+        android:visibility="invisible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/buttonAudioPhysical" />
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/buttonDownload"
@@ -62,7 +102,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/buttonHaptic"
+        app:layout_constraintTop_toBottomOf="@id/buttonHapticPhysical"
         app:layout_constraintVertical_bias="1.0" />
 
     <EditText
@@ -76,5 +116,5 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/idText" />
+        app:layout_constraintTop_toBottomOf="@id/topTextLayout" />
 </androidx.constraintlayout.widget.ConstraintLayout>

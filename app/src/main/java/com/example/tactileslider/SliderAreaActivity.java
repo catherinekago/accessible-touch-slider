@@ -170,6 +170,7 @@ public class SliderAreaActivity extends AppCompatActivity {
             audioFeedback.getSoundPool().play(soundIdCompletion, 0.5F, 0.5F, 1, 0, 1);
             final String[] userId = userData.getUserId().split("_" + feedbackMode);
             userData.setUserID(userId[0]);
+            // TODO: randomize targets again
             finish();
         }
 

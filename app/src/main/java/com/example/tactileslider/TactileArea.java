@@ -54,7 +54,7 @@ public class TactileArea {
         sliderView = mainActivity.findViewById(R.id.sliderView);
         coorinatesView = mainActivity.findViewById(R.id.topBar);
         this.audioFeedback = new AudioFeedback();
-        this.soundId = audioFeedback.getSoundPool().load(mainActivity, R.raw.audiofeedback, 1);
+        this.soundId = audioFeedback.getSoundPool().load(mainActivity, R.raw.piep, 1);
         this.feedbackMode = feedbackMode;
 
         audioFeedback.getSoundPool().setOnLoadCompleteListener(new SoundPool.OnLoadCompleteListener() {
