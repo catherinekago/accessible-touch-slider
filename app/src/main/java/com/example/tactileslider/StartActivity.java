@@ -6,8 +6,12 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
 
+import android.app.PendingIntent;
+import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.Intent;
+import android.hardware.usb.UsbDevice;
+import android.hardware.usb.UsbDeviceConnection;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -15,6 +19,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.felhr.usbserial.UsbSerialDevice;
+import com.felhr.usbserial.UsbSerialInterface;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.CollectionReference;
@@ -47,19 +53,36 @@ public class StartActivity extends AppCompatActivity {
     private Button audioPhysicalButton;
     private Button hapticPhysicalButton;
     private AppCompatButton downloadButton;
-    private EditText idInput;
     private TextView idText;
     private Button confirmIdButton;
 
-    private UserData userData;
-    private ArrayList<String> userList;
-    private ArrayList<CollectionReference> userDataReferences;
-    private ArrayList<JSONObject> userDataJsonList;
+    // TODO: randomize latin square function balance factors (matlab)
 
-    private int userDataSetCount;
-    private View bluetoothConnectionText;
+    // TODO: vibration: Kopfhörer auf, Ton aus?
+
+    // TODO: NO DUAL TASK - it is an accessibility feature
+    // TODO: in 2 Wochen paar seeeingeschränkte fragen, was sie von slidern halten
+    // TODO: use case definieren für menschen mit Seeinschränkungen - wo nutzen sie slider? (Fragebogen)
+    // TODO: sensitive range error rausrechnen (if error kleiner range, setze error 0)
+
+    // TODO: mit Mitbewohnern Studie testen um fehler aufzudecken
+    // TODO: überlegen wie könnte man das Design variieren, und warum? Länge, mit / ohne Schablone für beide Längen (lwo cost touchplate)
+
+    // TODO: wie oft wiederholen? Abhängig von der Anzahl der Varianten
+
+    // --> wie grenzen wir das von Verena ab? Quantitativ + mehr Design Varianten
+
+    // Markus:
+    // NASA-TLX oder SUS nach JEDER getesteten VARIANTE, aber nicht mehr certainty nach jedem item
+    // such dir einen favorisierte Variante aus (haptisch/auditiv, "länge", ...) und beantworte einen Fragebogen "wie sehr mögen Sie Katzen"
+
+    private UserData userData;
 
     private JsonFormatter jsonFormatter;
+
+    //UsbDevice device;
+    //UsbDeviceConnection usbConnection;
+    //UsbSerialDevice serial = UsbSerialDevice.createUsbSerialDevice(device, usbConnection);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,16 +95,16 @@ public class StartActivity extends AppCompatActivity {
         this.audioPhysicalButton = findViewById(R.id.buttonAudioPhysical);
         this.hapticPhysicalButton = findViewById(R.id.buttonHapticPhysical);
         this.downloadButton = findViewById(R.id.buttonDownload);
-        this.idInput = findViewById(R.id.idInput);
         this.idText = findViewById(R.id.idText);
-        this.bluetoothConnectionText = findViewById(R.id.bluetoothConnection);
         this.confirmIdButton = findViewById(R.id.confirmId);
         this. jsonFormatter = new JsonFormatter(this);
+        // Set id to next id in line
+        createId();
 
         // Setup event listeners
         audioAppButton.setOnClickListener(view -> switchToSliderActivity(AUDIO, APP));
         hapticAppButton.setOnClickListener(view -> switchToSliderActivity(HAPTIC, APP));
-        confirmIdButton.setOnClickListener(view -> setId(this.idInput.getText().toString()));
+        confirmIdButton.setOnClickListener(view -> startTrials());
         downloadButton.setOnClickListener(view -> jsonFormatter.downloadUserTestingData());
         audioPhysicalButton.setOnClickListener(view -> switchToSliderActivity(AUDIO, PHYSICAL));
         hapticPhysicalButton.setOnClickListener(view -> switchToSliderActivity(HAPTIC, PHYSICAL));
@@ -91,16 +114,55 @@ public class StartActivity extends AppCompatActivity {
         audioPhysicalButton.setVisibility(View.INVISIBLE);
         hapticPhysicalButton.setVisibility(View.INVISIBLE);
 
-        // how many user data sets will be generated?
-        // repetitions of tasks * number of tasks * number of tests * number of users
-        // 1 * 7 * 4 * userList.size()
-        // TODO: set to * 4 instead of * 2
-        userDataSetCount =  1 * 7 * 2 * 1;
+        // Setup USB device connection
+        //serial.open();
+        //serial.setBaudRate(115200);
+        //serial.setDataBits(UsbSerialInterface.DATA_BITS_8);
+        //serial.setParity(UsbSerialInterface.PARITY_ODD);
+        //serial.setFlowControl(UsbSerialInterface.FLOW_CONTROL_OFF);
+        //serial.read(mCallback);
 
-        // TODO setup bluetooth connection and set bluetoothConnectionText to "verbunden" in green if successful
-        // TODO add listener to bluetooth connection and show toast if lost and sound?
-
+        // serial.write("DATA".getBytes()); // Async-like operation now! :)
     }
+
+    private void startTrials() {
+        initializeUserData(idText.getText().toString());
+        // TODO: replace these with automized start of trials
+        confirmIdButton.setVisibility(View.INVISIBLE);
+        enableModeSelection();
+    }
+
+    private void createId() {
+        FirebaseFirestore firebase = FirebaseFirestore.getInstance();
+        CollectionReference collectionRef = firebase.collection("userDataCollectionNames");
+        collectionRef
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            int P_count = task.getResult().size();
+                            String newId = "P_" + (P_count+1);
+                            idText.setText(newId);
+                        } else {
+                            Log.d(TAG, "Error getting documents: ", task.getException());
+                        }
+                    }
+                });
+    };
+
+
+
+    // Define a simple callback for transactions from connected device
+    private UsbSerialInterface.UsbReadCallback mCallback = new UsbSerialInterface.UsbReadCallback() {
+
+        @Override
+        public void onReceivedData(byte[] arg0)
+        {
+            // Code here :)
+        }
+
+    };
 
     // Exchange UI elements for ID selection with Mode selection
     private void enableModeSelection() {
@@ -114,38 +176,25 @@ public class StartActivity extends AppCompatActivity {
     private void switchToSliderActivity(String mode, String type){
         userData.setUserID(userData.getUserId() + "_" + mode + "_" + type);
         Intent intent;
-        if (mode.equals(APP)){
-            intent = new Intent(this, SliderAreaActivity.class);
-        } else {
-            intent = new Intent(this, PhysicalActivity.class);
-        }
+        intent = new Intent(this, SliderAreaActivity.class);
         intent.putExtra("feedbackMode", mode);
         intent.putExtra("userData", userData);
         startActivity(intent);
     }
 
-    // Set the userId within the interface as well as for the userID
-    private void setId(String id){
-        idText.setText("ID: " + id);
-        idInput.setVisibility(View.INVISIBLE);
-        confirmIdButton.setVisibility(View.INVISIBLE);
-        enableModeSelection();
-        initializeUserData(id);
-
-    }
-
     private void initializeUserData(String id) {
+        // TODO: based on id, determine latin square variant to be used and generate plan
         int times = 1;
         userData = new UserData(id,times);
         // add collection to firebase
         FirebaseFirestore firebase = FirebaseFirestore.getInstance();
-        CollectionReference collectionRef = firebase.collection(id);
         // add userID to firebase collectionList collection
         Map<String, Object> userData = new HashMap<>();
         userData.put("id", id);
         firebase.collection("userDataCollectionNames").document(id).set(userData);
 
     }
+
     }
 
 

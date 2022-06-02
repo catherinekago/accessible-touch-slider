@@ -25,7 +25,6 @@ import java.util.HashMap;
 
 public class JsonFormatter {
     private final Context context;
-    private UserData userData;
     private ArrayList<String> userList;
     private ArrayList<CollectionReference> userDataReferences;
     private ArrayList<JSONObject> userDataJsonList;
@@ -33,6 +32,11 @@ public class JsonFormatter {
     
     public JsonFormatter(Context context){
         this.context = context;
+        // how many user data sets will be generated?
+        // repetitions of tasks * number of tasks * number of tests * number of users
+        // 1 * 7 * 4 * userList.size()
+        // TODO: set to * 4 instead of * 2
+        userDataSetCount =  1 * 7 * 2 * 1;
         
     }
     // Get data from firebase and download each set as json
@@ -53,7 +57,6 @@ public class JsonFormatter {
                             for (QueryDocumentSnapshot documentUser : task.getResult()) {
                                 userList.add(documentUser.getId());
                             }
-                            // todo nextMethod
                             createCollectionReferences();
                         } else {
                             Log.d(TAG, "Error getting documents: ", task.getException());

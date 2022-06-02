@@ -38,6 +38,7 @@ public class UserData implements Serializable {
 
     private ArrayList<Double> createRandomizedTargetList(int times) {
         // CAUTION: Hardcoded values for range of sliders
+        // TODO replace with balanced latin square?
         final double from = 1.00;
         final double until = 7.00;
 
