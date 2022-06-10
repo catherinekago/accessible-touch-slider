@@ -139,7 +139,7 @@ public class TactileSlider {
                 tactileSlider.setProgress(0);
                 userData.getLastMeasurement().removeLastMeasurementPair();
                 currentPairs.setText(CURRENT_PAIRS_PREFIX);
-                userData.pushDataToDatabase();
+                //userData.pushDataToDatabase(phase);
                 if (userData.getCurrentTargetIndex() < userData.getCurrentTargetList().size()-1){
                     userData.incrementCurrentTargetIndex();
                     userData.addMeasurement(userData.getCurrentTargetList().get(userData.getCurrentTargetIndex()));
@@ -178,7 +178,7 @@ public class TactileSlider {
                 // Get current timestamp and add new measurementPair
                 long timestamp = System.nanoTime() - currentStartTime;
                 timestamp = TimeUnit.NANOSECONDS.toMillis(timestamp);
-                userData.getLastMeasurement().addMeasurementPair(currentCount, timestamp);
+                //userData.getLastMeasurement().addMeasurementPair(currentCount, userInputValue, timestamp);
                 ArrayList<String> pairsAsStrings = new ArrayList<String>();
                 for (MeasurementPair pair : userData.getLastMeasurement().getMeasurementPairs()){
                     pairsAsStrings.add(pair.getValue() + " - " + pair.getTimestamp());

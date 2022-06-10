@@ -96,8 +96,13 @@ public class JsonFormatter {
                                         String userId = completeUserName.split("_")[0];
                                         String feedback = completeUserName.split("_")[1];
                                         String prototype = completeUserName.split("_")[2];
-                                        json.put("userId", userId).put("feedback", feedback).put("prototype", prototype);
-                                        json.put("target", data.get("target")).put("input", data.get("input")).put("error", data.get("error")).put("completiontime", data.get("completionTime"));
+                                        String phase = completeUserName.split("_")[3];
+                                        json.put("userId", userId).put("feedback", feedback).put("prototype", prototype).put("phase", phase);
+                                        if (phase.equals("study")){
+                                            json.put("target", data.get("target")).put("input", data.get("input")).put("error", data.get("error")).put("completiontime", data.get("completionTime"));
+                                        } else if (phase.equals("questionnaire")){
+                                            json.put("question", data.get("question")).put("input", data.get("input")).put("completiontime", data.get("completionTime"));
+                                        }
                                         json.put("measurementPairs", createJsonFromMeasurementPairs((ArrayList<HashMap>) data.get("measurementPairs")));
                                         userDataJsonList.add(json);
                                         i++;

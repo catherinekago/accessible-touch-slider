@@ -3,9 +3,7 @@ package com.example.tactileslider;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Vibrator;
 import android.speech.tts.TextToSpeech;
-import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -112,9 +110,9 @@ public class PhysicalActivity extends AppCompatActivity {
         userData.getLastMeasurement().setCompletionTime(completiontime);
 
         for (HashMap<Double, Long> pair : measurementPairs){
-            userData.getLastMeasurement().addMeasurementPair(pair.get("value"), pair.get("timestamp"));
+           // userData.getLastMeasurement().addMeasurementPair(pair.get("value"), userInputValue, pair.get("timestamp"));
         }
-        userData.pushDataToDatabase();
+        //userData.pushDataToDatabase(phase);
     }
 
     // TODO convert received data to required data format for userData

@@ -6,37 +6,23 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
 
-import android.app.PendingIntent;
-import android.bluetooth.BluetoothSocket;
-import android.content.Context;
 import android.content.Intent;
-import android.hardware.usb.UsbDevice;
-import android.hardware.usb.UsbDeviceConnection;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.TableLayout;
+import android.widget.TableRow;
 import android.widget.TextView;
 
-import com.felhr.usbserial.UsbSerialDevice;
-import com.felhr.usbserial.UsbSerialInterface;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -44,45 +30,28 @@ import java.util.Map;
 public class StartActivity extends AppCompatActivity {
 
     private final String AUDIO = "audio";
-    private final String HAPTIC = "haptic";
-    private final String APP = "app";
-    private final String PHYSICAL = "physical";
+    private final String TACTILE = "tactile";
+    private final String COMBINED = "combined";
+    private final String LONG = "long";
+    private final String SHORT = "short";
+    private final String HORIZONTAL = "horizontal";
+    private final String VERTICAL = "vertical";
 
-    private Button audioAppButton;
-    private Button hapticAppButton;
-    private Button audioPhysicalButton;
-    private Button hapticPhysicalButton;
+    private final String TRIAL = "trial";
+    private final String STUDY = "study";
+    private final int STUDY_REPETITIONS = 1; // TODO: set to 3
+    private final String QUEST = "questionnaire";
+
     private AppCompatButton downloadButton;
-    private TextView idText;
+    private EditText idText;
     private Button confirmIdButton;
-
-    // TODO: randomize latin square function balance factors (matlab)
-
-    // TODO: vibration: Kopfhörer auf, Ton aus?
-
-    // TODO: NO DUAL TASK - it is an accessibility feature
-    // TODO: in 2 Wochen paar seeeingeschränkte fragen, was sie von slidern halten
-    // TODO: use case definieren für menschen mit Seeinschränkungen - wo nutzen sie slider? (Fragebogen)
-    // TODO: sensitive range error rausrechnen (if error kleiner range, setze error 0)
-
-    // TODO: mit Mitbewohnern Studie testen um fehler aufzudecken
-    // TODO: überlegen wie könnte man das Design variieren, und warum? Länge, mit / ohne Schablone für beide Längen (lwo cost touchplate)
-
-    // TODO: wie oft wiederholen? Abhängig von der Anzahl der Varianten
-
-    // --> wie grenzen wir das von Verena ab? Quantitativ + mehr Design Varianten
-
-    // Markus:
-    // NASA-TLX oder SUS nach JEDER getesteten VARIANTE, aber nicht mehr certainty nach jedem item
-    // such dir einen favorisierte Variante aus (haptisch/auditiv, "länge", ...) und beantworte einen Fragebogen "wie sehr mögen Sie Katzen"
 
     private UserData userData;
 
     private JsonFormatter jsonFormatter;
 
-    //UsbDevice device;
-    //UsbDeviceConnection usbConnection;
-    //UsbSerialDevice serial = UsbSerialDevice.createUsbSerialDevice(device, usbConnection);
+    private AudioFeedback audioFeedback;
+    private int soundIdDoubleTap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,49 +59,147 @@ public class StartActivity extends AppCompatActivity {
         setContentView(R.layout.activity_start);
 
         // Setup activity components
-        this.audioAppButton = findViewById(R.id.buttonAudioApp);
-        this.hapticAppButton = findViewById(R.id.buttonHapticApp);
-        this.audioPhysicalButton = findViewById(R.id.buttonAudioPhysical);
-        this.hapticPhysicalButton = findViewById(R.id.buttonHapticPhysical);
         this.downloadButton = findViewById(R.id.buttonDownload);
         this.idText = findViewById(R.id.idText);
-        this.confirmIdButton = findViewById(R.id.confirmId);
-        this. jsonFormatter = new JsonFormatter(this);
-        // Set id to next id in line
-        createId();
+        this.jsonFormatter = new JsonFormatter(this);
+        
+        // Audio Feedback 
+        this.audioFeedback = new AudioFeedback();
+        this.soundIdDoubleTap = audioFeedback.getSoundPool().load(this, R.raw.doubletap, 1);
+
+        initializeUserDataObject();
 
         // Setup event listeners
-        audioAppButton.setOnClickListener(view -> switchToSliderActivity(AUDIO, APP));
-        hapticAppButton.setOnClickListener(view -> switchToSliderActivity(HAPTIC, APP));
-        confirmIdButton.setOnClickListener(view -> startTrials());
+        findViewById(R.id.trial_audio_long_horizontal).setOnClickListener(view -> switchToSliderTrial(findViewById(R.id.trial_audio_long_horizontal), AUDIO, LONG, HORIZONTAL));
+        findViewById(R.id.trial_audio_long_vertical).setOnClickListener(view -> switchToSliderTrial(findViewById(R.id.trial_audio_long_vertical), AUDIO, LONG, VERTICAL));
+        findViewById(R.id.trial_audio_short_horizontal).setOnClickListener(view -> switchToSliderTrial(findViewById(R.id.trial_audio_short_horizontal), AUDIO, SHORT, HORIZONTAL));
+        findViewById(R.id.trial_audio_short_vertical).setOnClickListener(view -> switchToSliderTrial(findViewById(R.id.trial_audio_short_vertical), AUDIO, SHORT, VERTICAL));
+
+        findViewById(R.id.trial_tactile_long_horizontal).setOnClickListener(view -> switchToSliderTrial(findViewById(R.id.trial_tactile_long_horizontal), TACTILE, LONG, HORIZONTAL));
+        findViewById(R.id.trial_tactile_long_vertical).setOnClickListener(view -> switchToSliderTrial(findViewById(R.id.trial_tactile_long_vertical), TACTILE, LONG, VERTICAL));
+        findViewById(R.id.trial_tactile_short_horizontal).setOnClickListener(view -> switchToSliderTrial(findViewById(R.id.trial_tactile_short_horizontal), TACTILE, SHORT, HORIZONTAL));
+        findViewById(R.id.trial_tactile_short_vertical).setOnClickListener(view -> switchToSliderTrial(findViewById(R.id.trial_tactile_short_vertical), TACTILE, SHORT, VERTICAL));
+
+        findViewById(R.id.trial_combined_long_horizontal).setOnClickListener(view -> switchToSliderTrial(findViewById(R.id.trial_combined_long_horizontal), COMBINED, LONG, HORIZONTAL));
+        findViewById(R.id.trial_combined_long_vertical).setOnClickListener(view -> switchToSliderTrial(findViewById(R.id.trial_combined_long_vertical), COMBINED, LONG, VERTICAL));
+        findViewById(R.id.trial_combined_short_horizontal).setOnClickListener(view -> switchToSliderTrial(findViewById(R.id.trial_combined_short_horizontal), COMBINED, SHORT, HORIZONTAL));
+        findViewById(R.id.trial_combined_short_vertical).setOnClickListener(view -> switchToSliderTrial(findViewById(R.id.trial_combined_short_vertical), COMBINED, SHORT, VERTICAL));
+
+        findViewById(R.id.changeId).setOnClickListener(view -> changeId());
+        findViewById(R.id.startQuestionnaires).setOnClickListener(view -> startQuestionnairePhase());
+        findViewById(R.id.startStudy).setOnClickListener(view -> startStudyPhase());
+
+
+        // TODO startStudy listener
+
         downloadButton.setOnClickListener(view -> jsonFormatter.downloadUserTestingData());
-        audioPhysicalButton.setOnClickListener(view -> switchToSliderActivity(AUDIO, PHYSICAL));
-        hapticPhysicalButton.setOnClickListener(view -> switchToSliderActivity(HAPTIC, PHYSICAL));
 
-        audioAppButton.setVisibility(View.INVISIBLE);
-        hapticAppButton.setVisibility(View.INVISIBLE);
-        audioPhysicalButton.setVisibility(View.INVISIBLE);
-        hapticPhysicalButton.setVisibility(View.INVISIBLE);
-
-        // Setup USB device connection
-        //serial.open();
-        //serial.setBaudRate(115200);
-        //serial.setDataBits(UsbSerialInterface.DATA_BITS_8);
-        //serial.setParity(UsbSerialInterface.PARITY_ODD);
-        //serial.setFlowControl(UsbSerialInterface.FLOW_CONTROL_OFF);
-        //serial.read(mCallback);
-
-        // serial.write("DATA".getBytes()); // Async-like operation now! :)
+        findViewById(R.id.trialTable).setVisibility(View.VISIBLE);
+        findViewById(R.id.changeId).setVisibility(View.VISIBLE);
     }
 
-    private void startTrials() {
-        initializeUserData(idText.getText().toString());
-        // TODO: replace these with automized start of trials
-        confirmIdButton.setVisibility(View.INVISIBLE);
-        enableModeSelection();
+    private void changeId() {
+        String newId = String.valueOf(idText.getText());
+        userData.setUserID(newId);
+        // add collection to firebase
+        FirebaseFirestore firebase = FirebaseFirestore.getInstance();
+        CollectionReference collectionRef = firebase.collection("userDataCollectionNames");
+        collectionRef
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            int P_count = task.getResult().size();
+                            String lastId = "P_" + (P_count);
+                            // add collection to firebase
+                            FirebaseFirestore firebase = FirebaseFirestore.getInstance();
+                            // add userID to firebase collectionList collection
+                            Map<String, Object> data = new HashMap<>();
+                            data.put("id", newId);
+                            firebase.collection("userDataCollectionNames").document(lastId).delete();
+                            firebase.collection("userDataCollectionNames").document(newId).set(data);
+                        } else {
+                            Log.d(TAG, "Error getting documents: ", task.getException());
+                        }
+                    }
+                });
     }
 
-    private void createId() {
+    private Intent createIntent(String phase){
+        ArrayList<String> variants = getSelectedVariants();
+        Intent intent;
+        intent = new Intent(this, SliderAreaActivity.class);
+
+        intent.putExtra("feedbackMode_1", variants.get(0).split(" ")[0]);
+        intent.putExtra("length_1", variants.get(0).split(" ")[1]);
+        intent.putExtra("orientation_1", variants.get(0).split(" ")[2]);
+
+        intent.putExtra("feedbackMode_2", variants.get(1).split(" ")[0]);
+        intent.putExtra("length_2", variants.get(1).split(" ")[1]);
+        intent.putExtra("orientation_2", variants.get(1).split(" ")[2]);
+
+        if (variants.size() == 3){
+            intent.putExtra("feedbackMode_3", variants.get(2).split(" ")[0]);
+            intent.putExtra("length_3", variants.get(2).split(" ")[1]);
+            intent.putExtra("orientation_3", variants.get(2).split(" ")[2]);
+        }
+
+        intent.putExtra("phase", phase);
+        intent.putExtra("userData", userData);
+        return intent;
+    }
+
+    // Initialize questionnaire phase
+    private void startQuestionnairePhase() {
+        Intent intent = createIntent(QUEST);
+        //startActivity(intent);
+    }
+
+    // Initialize study phase
+    private void startStudyPhase() {
+        Intent intent = createIntent(STUDY);
+        startActivity(intent);
+    }
+
+    // Determine which variants have been selected
+    private ArrayList<String> getSelectedVariants(){
+        ArrayList<String> variants = new ArrayList<>();
+        TableLayout table = (TableLayout) findViewById(R.id.trialTable);
+        int count = table.getChildCount();
+        for (int i = 0; i < count; i++) {
+            TableRow row = (TableRow) table.getChildAt(i);
+            CheckBox first = (CheckBox) row.getChildAt(0);
+            CheckBox second = (CheckBox) row.getChildAt(3);
+            if (first.isChecked()){
+                variants.add((String) first.getTag());
+            }
+            if (second.isChecked()){
+                variants.add((String) second.getTag());
+            }
+        }
+        return variants;
+    }
+
+    // Switch to slider variant of the given parameters for trial phase
+    private void switchToSliderTrial(Button button, String mode, String length, String orientation){
+
+        // change color of button
+        button.setBackgroundColor(getResources().getColor(R.color.grape_pale));
+        audioFeedback.getSoundPool().play(soundIdDoubleTap, 0.5F, 0.5F, 1, 0, 1);
+
+        Intent intent;
+        intent = new Intent(this, SliderAreaActivity.class);
+        intent.putExtra("userData", userData);
+        intent.putExtra("feedbackMode_1", mode);
+        intent.putExtra("orientation_1", orientation);
+        intent.putExtra("length_1", length);
+        intent.putExtra("phase", TRIAL);
+        startActivity(intent);
+    }
+
+    // Determine the ID of the participant according to already existing IDs
+    private void initializeUserDataObject() {
         FirebaseFirestore firebase = FirebaseFirestore.getInstance();
         CollectionReference collectionRef = firebase.collection("userDataCollectionNames");
         collectionRef
@@ -144,56 +211,20 @@ public class StartActivity extends AppCompatActivity {
                             int P_count = task.getResult().size();
                             String newId = "P_" + (P_count+1);
                             idText.setText(newId);
+                            int times = STUDY_REPETITIONS;
+                            userData = new UserData(newId,times);
+                            // add collection to firebase
+                            FirebaseFirestore firebase = FirebaseFirestore.getInstance();
+                            // add userID to firebase collectionList collection
+                            Map<String, Object> userData = new HashMap<>();
+                            userData.put("id", newId);
+                            firebase.collection("userDataCollectionNames").document(newId).set(userData);
                         } else {
                             Log.d(TAG, "Error getting documents: ", task.getException());
                         }
                     }
                 });
     };
-
-
-
-    // Define a simple callback for transactions from connected device
-    private UsbSerialInterface.UsbReadCallback mCallback = new UsbSerialInterface.UsbReadCallback() {
-
-        @Override
-        public void onReceivedData(byte[] arg0)
-        {
-            // Code here :)
-        }
-
-    };
-
-    // Exchange UI elements for ID selection with Mode selection
-    private void enableModeSelection() {
-        audioAppButton.setVisibility(View.VISIBLE);
-        hapticAppButton.setVisibility(View.VISIBLE);
-        audioPhysicalButton.setVisibility(View.VISIBLE);
-        hapticPhysicalButton.setVisibility(View.VISIBLE);
-    }
-
-    // Switch to slider with feedback mode according to selection
-    private void switchToSliderActivity(String mode, String type){
-        userData.setUserID(userData.getUserId() + "_" + mode + "_" + type);
-        Intent intent;
-        intent = new Intent(this, SliderAreaActivity.class);
-        intent.putExtra("feedbackMode", mode);
-        intent.putExtra("userData", userData);
-        startActivity(intent);
-    }
-
-    private void initializeUserData(String id) {
-        // TODO: based on id, determine latin square variant to be used and generate plan
-        int times = 1;
-        userData = new UserData(id,times);
-        // add collection to firebase
-        FirebaseFirestore firebase = FirebaseFirestore.getInstance();
-        // add userID to firebase collectionList collection
-        Map<String, Object> userData = new HashMap<>();
-        userData.put("id", id);
-        firebase.collection("userDataCollectionNames").document(id).set(userData);
-
-    }
 
     }
 

@@ -6,8 +6,8 @@ public class LikertItem {
     private float frequencyValue;
     private int amplitudeValue;
 
-    public LikertItem(Integer yCoord, int alphaValue, float freqValue, int amplitudeValue) {
-        this.yCoord = yCoord;
+    public LikertItem(Integer coord, int alphaValue, float freqValue, int amplitudeValue) {
+        this.yCoord = coord;
         this.alphaValue = alphaValue;
         this.frequencyValue = freqValue;
         this.amplitudeValue = amplitudeValue;

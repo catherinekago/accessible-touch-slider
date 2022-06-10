@@ -1,9 +1,5 @@
 package com.example.tactileslider;
 
-import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.FirebaseFirestore;
-
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -13,6 +9,7 @@ import java.util.ArrayList;
 public class Measurement implements Serializable {
 
     private double target;
+    private String question;
     private double input;
     private double error;
     private long completionTime;
@@ -20,6 +17,8 @@ public class Measurement implements Serializable {
     private ArrayList<MeasurementPair> measurementPairs = new ArrayList<MeasurementPair>();
 
     public Measurement(double target) { this.target = target; }
+
+    public Measurement(String question) { this.question = question; }
 
     public void setInput(double input) {
         this.input = input;
@@ -32,14 +31,16 @@ public class Measurement implements Serializable {
 
     public double getTarget() { return target; }
 
+    public String getQuestion() { return question; }
+
     public void setError(double error) { this.error = error; }
     public double getError() { return error; }
 
     public long getCompletionTime() { return completionTime; }
     public void setCompletionTime(long completionTime) { this.completionTime = completionTime; }
 
-    public void addMeasurementPair(double value, long timestamp) {
-        MeasurementPair newPair = new MeasurementPair(value, timestamp);
+    public void addMeasurementPair(double xCoord, double value, long timestamp) {
+        MeasurementPair newPair = new MeasurementPair(xCoord, value, timestamp);
         this.measurementPairs.add(newPair);
     }
 
@@ -57,13 +58,17 @@ public class Measurement implements Serializable {
 // The MeasurementPair class holds the value-timestamp pairs that occurred during the measurements,
 // for more detailed analysis.
 class MeasurementPair implements Serializable{
+    private final double xCoord;
     private double value;
     private long timestamp;
 
-    public MeasurementPair(double value, long timestamp){
+    public MeasurementPair(double xCoord, double value, long timestamp){
+        this.xCoord = xCoord;
         this.value = value;
         this.timestamp = timestamp;
     }
+
+    public double getxCoord(){ return xCoord; }
 
     public double getValue() {
         return value;
