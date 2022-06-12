@@ -89,9 +89,6 @@ public class StartActivity extends AppCompatActivity {
         findViewById(R.id.startQuestionnaires).setOnClickListener(view -> startQuestionnairePhase());
         findViewById(R.id.startStudy).setOnClickListener(view -> startStudyPhase());
 
-
-        // TODO startStudy listener
-
         downloadButton.setOnClickListener(view -> jsonFormatter.downloadUserTestingData());
 
         findViewById(R.id.trialTable).setVisibility(View.VISIBLE);
@@ -153,7 +150,7 @@ public class StartActivity extends AppCompatActivity {
     // Initialize questionnaire phase
     private void startQuestionnairePhase() {
         Intent intent = createIntent(QUEST);
-        //startActivity(intent);
+        startActivity(intent);
     }
 
     // Initialize study phase

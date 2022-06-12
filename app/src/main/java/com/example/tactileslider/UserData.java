@@ -63,7 +63,6 @@ public class UserData implements Serializable {
 
     private ArrayList<Double> createRandomizedTargetList(int times) {
         // CAUTION: Hardcoded values for range of sliders
-        // TODO replace with balanced latin square?
         final double from = 1.00;
         final double until = 3.00; // TODO: 7
 
@@ -123,7 +122,12 @@ public class UserData implements Serializable {
             measurementPairs.add(measurementPair);
         }
         measurement.put("measurementPairs", measurementPairs);
-        collectionRef.document("task_" + currentTargetIndex).set(measurement);
+        if (phase.equals("study")){
+            collectionRef.document("task_" + currentTargetIndex).set(measurement);
+        } else if (phase.equals("questionnaire")){
+            collectionRef.document("task_" + currentQuestionIndex).set(measurement);
+        }
+
     }
 
     public String getUserId(){

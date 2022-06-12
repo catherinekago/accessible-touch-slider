@@ -24,8 +24,6 @@ import java.util.Locale;
 import java.util.Set;
 
 public class SliderAreaActivity extends AppCompatActivity {
-    TactileSlider tactileSlider;
-
 
     // Tactile Area Variant
     TactileArea tactileArea;
@@ -205,20 +203,22 @@ public class SliderAreaActivity extends AppCompatActivity {
 
     // Generate speech output to read aloud task
     private void readAloudTarget() {
-        int target = (int) Math.round(userData.getCurrentTargetList().get(userData.getCurrentTargetIndex()));
+
         String toSpeak;
         if (phase.equals(STUDY)) {
+            int target = (int) Math.round(userData.getCurrentTargetList().get(userData.getCurrentTargetIndex()));
             toSpeak = "Bitte wählen Sie die " + target + ".";
         } else {
-            toSpeak = ""; // TODO: access next question in questionnaire
+            String question = userData.getCurrentQuestionList().get(userData.getCurrentQuestionIndex());
+            toSpeak = question;
         }
 
-        final int interval = 1000; // 1 Second
+        final int interval = 500; // half a second
         Handler handler = new Handler();
         Runnable runnable = new Runnable() {
             public void run() {
                 HashMap<String, String> params = new HashMap<String, String>();
-                params.put(TextToSpeech.Engine.KEY_PARAM_VOLUME, "0.05");
+                params.put(TextToSpeech.Engine.KEY_PARAM_VOLUME, "0.15");
                 ttsObject.speak(toSpeak, TextToSpeech.QUEUE_FLUSH, params);
             }
         };
@@ -261,9 +261,13 @@ public class SliderAreaActivity extends AppCompatActivity {
                     readAloudTarget();
                 } else {
                     audioFeedback.getSoundPool().play(soundIdCompletion, 0.5F, 0.5F, 1, 0, 1);
-                    final String[] userId = userData.getUserId().split("_" + feedbackModes.get(currentVariant));
-                    userData.setUserID(userId[0]);
-                    finish();
+                    if (feedbackModes.size() > currentVariant + 1 ){
+                        initializeNextVariant();
+                    } else {
+                        final String[] userId = userData.getUserId().split("_" + feedbackModes.get(currentVariant));
+                        userData.setUserID(userId[0]);
+                        finish();
+                    }
                 }
         }
     }

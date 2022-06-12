@@ -28,16 +28,16 @@ public class JsonFormatter {
     private ArrayList<String> userList;
     private ArrayList<CollectionReference> userDataReferences;
     private ArrayList<JSONObject> userDataJsonList;
-    private int userDataSetCount;
-    
+    private int studyDataCount;
+
     public JsonFormatter(Context context){
         this.context = context;
         // how many user data sets will be generated?
-        // repetitions of tasks * number of tasks * number of tests * number of users
-        // 1 * 7 * 4 * userList.size()
-        // TODO: set to * 4 instead of * 2
-        userDataSetCount =  1 * 7 * 2 * 1;
-        
+        // repetitions of tasks * number of tasks * number of tests + numQuestions * numVariants
+        // 1 * 7 * 4
+        // TODO: set to 3 * 7 * 3 + (numQuestions * 2)
+        studyDataCount =  1 * 7 * 3 * 1;
+
     }
     // Get data from firebase and download each set as json
     public void downloadUserTestingData(){
@@ -69,11 +69,10 @@ public class JsonFormatter {
         userDataReferences = new ArrayList<>();
         FirebaseFirestore firebase = FirebaseFirestore.getInstance();
         for (String userId : userList){
-            userDataReferences.add(firebase.collection(userId + "_audio_app"));
-            userDataReferences.add(firebase.collection(userId + "_haptic_app"));
-            // todo enable this
-            //userDataReferences.add(firebase.collection(userId + "_audio_physical"));
-            //userDataReferences.add(firebase.collection(userId + "_haptic_physical"));
+            // todo how to get list of all documents collectionPaths
+            //userDataReferences.add(firebase.collection(userId + "_audio_app"));
+            //userDataReferences.add(firebase.collection(userId + "_haptic_app"));
+
         }
         createJsonsFromUserData();
     }
@@ -111,7 +110,7 @@ public class JsonFormatter {
                                         e.printStackTrace();
                                     }
                                 }
-                                if (userDataJsonList.size() == userDataSetCount * userList.size()){
+                                if (userDataJsonList.size() == studyDataCount * userList.size()){
                                     try {
                                         storeJsonsInLocalStorage(groupJsonsByUserId());
                                     } catch (JSONException e) {
@@ -145,7 +144,7 @@ public class JsonFormatter {
                 identifiedUsers.add((String) data.get("userId"));
                 i = 1;
                 userJSON = new JSONObject();
-                userJSON.put("task_" + i, data);
+                userJSON.put("data_" + i, data);
                 i ++;
             }
         }

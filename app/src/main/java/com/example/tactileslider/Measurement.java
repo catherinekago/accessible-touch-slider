@@ -23,9 +23,10 @@ public class Measurement implements Serializable {
     public void setInput(double input) {
         this.input = input;
         // Calculate error
-        double error = this.target - this.input;
-        BigDecimal errorBD = new BigDecimal(error).setScale(2, RoundingMode.HALF_UP);
-        setError(errorBD.doubleValue());
+            double error = this.target - this.input;
+            BigDecimal errorBD = new BigDecimal(error).setScale(2, RoundingMode.HALF_UP);
+            setError(errorBD.doubleValue());
+
     }
     public double getInput() { return input; }
 
