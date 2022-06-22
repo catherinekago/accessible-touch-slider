@@ -2,7 +2,11 @@ package com.example.tactileslider;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
+import android.media.PlaybackParams;
 import android.media.SoundPool;
+import android.net.Uri;
 import android.os.Build;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
@@ -15,6 +19,7 @@ import androidx.annotation.RequiresApi;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Timer;
 import java.util.stream.IntStream;
 
 public class TactileArea {
@@ -28,6 +33,7 @@ public class TactileArea {
     TextView coorinatesView;
     private final String COORD_PREFIX = "Touch Input:   ";
     private int sliderLength;
+    private static int MAX_LENGTH = 1680;
     private int heightTopBar;
     private ArrayList<Integer> likertCoords = new ArrayList<Integer>();
     private int likertSpacing;
@@ -44,7 +50,7 @@ public class TactileArea {
     private final String QUEST = "questionnaire";
 
     // Audio Feedback
-    private AudioFeedback audioFeedback;
+    private MediaPlayer audioFeedback;
     private final float MIN_FREQ = 0.5F;
     private final float MAX_FREQ = 2.0F;
     private long lastPlayTime = 0;
@@ -57,33 +63,34 @@ public class TactileArea {
     private final float MAX_AMP = 255;
     private final String TACTILE = "tactile";
     private final String COMBINED = "combined";
+    private Context context;
 
     private SliderAreaActivity mainActivity;
     private ArrayList<Integer> coordRanges;
 
 
-    public TactileArea(SliderAreaActivity mainActivity, UserData userData, String feedbackMode, String length, String orientation, String phase) {
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    public TactileArea(SliderAreaActivity mainActivity, UserData userData, String feedbackMode, String length, String orientation, String phase, Context context) {
 
         this.mainActivity = mainActivity;
         sliderView = mainActivity.findViewById(R.id.sliderView);
         coorinatesView = mainActivity.findViewById(R.id.topBar);
-        this.audioFeedback = new AudioFeedback();
-        this.soundId = audioFeedback.getSoundPool().load(mainActivity, R.raw.piep, 1);
+        this.audioFeedback = new MediaPlayer();
         this.feedbackMode = feedbackMode;
         this.length = length;
         this.orientation = orientation;
         this.phase = phase;
+        this.context = context;
 
-        audioFeedback.getSoundPool().setOnLoadCompleteListener(new SoundPool.OnLoadCompleteListener() {
-            @Override
-            public void onLoadComplete(SoundPool soundPool, int i, int i1) {
-                // Initialize layout once audioFeedback has loaded
-                setUpLayoutDrawnListener();
-            }
-        });
+        audioFeedback = MediaPlayer.create(context, R.raw.piep);
+        audioFeedback.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        audioFeedback.setVolume(0.25F, 0.25F);
 
         // Setup vibration
         vibrator = (Vibrator) this.mainActivity.getSystemService(Context.VIBRATOR_SERVICE);
+
+        setUpLayoutDrawnListener();
+
 
     }
 
@@ -120,11 +127,10 @@ public class TactileArea {
     @SuppressLint("ResourceAsColor")
     @RequiresApi(api = Build.VERSION_CODES.N)
     private void setUpLayout() {
-        // todo: perhaps adjust length to getMeasuredHeight instead of getMeasuredWidth
         if (length.equals(SHORT)){
-            sliderLength = sliderView.getMeasuredWidth() /2;
+            sliderLength = MAX_LENGTH /2;
         } else {
-            sliderLength = sliderView.getMeasuredWidth();
+            sliderLength = MAX_LENGTH;
 
         }
         sliderView.setLayoutParams(new LinearLayout.LayoutParams(sliderView.getMeasuredWidth(), sliderLength));
@@ -199,34 +205,48 @@ public class TactileArea {
     public void handleTouchEvent(int xTouch, int yTouch, UserData userData, long taskStart, String phase) {
 
         userInputValue = calculateLikertValue(yTouch);
-        if (coordRanges.contains(yTouch)) {
-            LikertItem crossedItem = likertItems.get(getLikertIndexFromRange(yTouch));
-            sliderView.getBackground().setAlpha(crossedItem.getAlphaValue());
-            coorinatesView.setText(COORD_PREFIX + userInputValue);
+        boolean valueIsMin = userInputValue >= 1.0;
+        boolean valueIsNotMax = userInputValue <=7.0;
+        if(valueIsMin && valueIsNotMax) {
+            if (coordRanges.contains(yTouch)) {
+                LikertItem crossedItem = likertItems.get(getLikertIndexFromRange(yTouch));
+                sliderView.getBackground().setAlpha(crossedItem.getAlphaValue());
+                coorinatesView.setText(COORD_PREFIX + userInputValue);
 
-            // Generate audio feedback
-            if ((feedbackMode.equals(AUDIO) || (feedbackMode.equals(COMBINED))) && System.currentTimeMillis() > MIN_PAUSE + lastPlayTime) {
-                audioFeedback.getSoundPool().play(soundId, 1F, 1F, 1, 0, crossedItem.getFrequencyValue());
-                lastPlayTime = System.currentTimeMillis();
+                // Generate audio feedback
+                if ((feedbackMode.equals(AUDIO) || (feedbackMode.equals(COMBINED))) && System.currentTimeMillis() > MIN_PAUSE + lastPlayTime) {
+                    PlaybackParams params = new PlaybackParams();
+                    params.setPitch(crossedItem.getFrequencyValue());
+                    params.setSpeed(0.75F);
+                    audioFeedback.setPlaybackParams(params);
+                    audioFeedback.start();
 
-                // Generate tactile feedback
-            } if ((feedbackMode.equals(TACTILE) || (feedbackMode.equals(COMBINED))) && System.currentTimeMillis() > MIN_PAUSE + lastPlayTime) {
-                // Haptic feedback that slider is activated
-                VibrationEffect effect = null;
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                    effect = VibrationEffect.createOneShot(150, (int) crossedItem.getAmplitudeValue());
-                    vibrator.vibrate(effect);
-                    lastPlayTime = System.currentTimeMillis();
+                    if (feedbackMode.equals(AUDIO)) {
+                        lastPlayTime = System.currentTimeMillis();
+                    }
+
+                    // Generate tactile feedback
                 }
+                if ((feedbackMode.equals(TACTILE) || (feedbackMode.equals(COMBINED))) && System.currentTimeMillis() > MIN_PAUSE + lastPlayTime) {
+                    // Haptic feedback that slider is activated
+                    VibrationEffect effect = null;
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                        effect = VibrationEffect.createOneShot(150, (int) crossedItem.getAmplitudeValue());
+                        vibrator.vibrate(effect);
+                        lastPlayTime = System.currentTimeMillis();
+                    }
 
+                }
+            }
+            coorinatesView.setText(COORD_PREFIX + userInputValue);
+            // Write measurementPair to userData
+            if (phase.equals(STUDY) || phase.equals(QUEST)) {
+                userData.getLastMeasurement().addMeasurementPair(xTouch, userInputValue, (long) System.currentTimeMillis() - taskStart);
             }
         }
-        coorinatesView.setText(COORD_PREFIX + userInputValue);
-        // Write measurementPair to userData
-        if (phase.equals(STUDY) || phase.equals(QUEST)){
-            userData.getLastMeasurement().addMeasurementPair(xTouch, userInputValue, (long) System.currentTimeMillis() - taskStart);
-        }
     }
+
+
 
 
     private int getLikertIndexFromRange(int yTouch) {

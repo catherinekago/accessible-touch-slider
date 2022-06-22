@@ -100,7 +100,7 @@ public class StartActivity extends AppCompatActivity {
         userData.setUserID(newId);
         // add collection to firebase
         FirebaseFirestore firebase = FirebaseFirestore.getInstance();
-        CollectionReference collectionRef = firebase.collection("userDataCollectionNames");
+        CollectionReference collectionRef = firebase.collection("participants");
         collectionRef
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
@@ -114,8 +114,8 @@ public class StartActivity extends AppCompatActivity {
                             // add userID to firebase collectionList collection
                             Map<String, Object> data = new HashMap<>();
                             data.put("id", newId);
-                            firebase.collection("userDataCollectionNames").document(lastId).delete();
-                            firebase.collection("userDataCollectionNames").document(newId).set(data);
+                            firebase.collection("participants").document(lastId).delete();
+                            firebase.collection("participants").document(newId).set(data);
                         } else {
                             Log.d(TAG, "Error getting documents: ", task.getException());
                         }
@@ -198,7 +198,7 @@ public class StartActivity extends AppCompatActivity {
     // Determine the ID of the participant according to already existing IDs
     private void initializeUserDataObject() {
         FirebaseFirestore firebase = FirebaseFirestore.getInstance();
-        CollectionReference collectionRef = firebase.collection("userDataCollectionNames");
+        CollectionReference collectionRef = firebase.collection("participants");
         collectionRef
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
@@ -207,15 +207,12 @@ public class StartActivity extends AppCompatActivity {
                         if (task.isSuccessful()) {
                             int P_count = task.getResult().size();
                             String newId = "P_" + (P_count+1);
+                            HashMap<String, String> participant = new HashMap<String, String>();
+                            participant.put("id", newId);
                             idText.setText(newId);
                             int times = STUDY_REPETITIONS;
                             userData = new UserData(newId,times);
-                            // add collection to firebase
-                            FirebaseFirestore firebase = FirebaseFirestore.getInstance();
-                            // add userID to firebase collectionList collection
-                            Map<String, Object> userData = new HashMap<>();
-                            userData.put("id", newId);
-                            firebase.collection("userDataCollectionNames").document(newId).set(userData);
+                            firebase.collection("participants").document(newId).set(participant);
                         } else {
                             Log.d(TAG, "Error getting documents: ", task.getException());
                         }

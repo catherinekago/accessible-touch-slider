@@ -4,6 +4,8 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Context;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -52,10 +54,6 @@ public class SliderAreaActivity extends AppCompatActivity {
     private long startTask = 0;
     private Vibrator vibrator;
     private boolean taskCompleted = false;
-    private AudioFeedback audioFeedback;
-    private int soundIdCompletion;
-    private int soundIdDoubleTap;
-    private int soundIdLongClick;
     private TextToSpeech ttsObject;
     private boolean tasksStarted = false;
 
@@ -67,8 +65,12 @@ public class SliderAreaActivity extends AppCompatActivity {
 
     int currentVariant = 0;
     String phase;
+    private MediaPlayer doubleTapSound;
+    private MediaPlayer successSound;
+    private MediaPlayer longClickSound;
 
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         getSupportActionBar().hide(); //<< this
@@ -79,7 +81,7 @@ public class SliderAreaActivity extends AppCompatActivity {
         setContentView(R.layout.activity_slider_area);
 
         this.context = this;
-        tactileArea = new TactileArea(this, userData, feedbackModes.get(currentVariant), lengths.get(currentVariant), orientations.get(currentVariant), phase);
+        tactileArea = new TactileArea(this, userData, feedbackModes.get(currentVariant), lengths.get(currentVariant), orientations.get(currentVariant), phase, context);
 
         View.OnTouchListener getCoordinates = setUpTapAndMotionListener();
         findViewById(R.id.mainView).setOnTouchListener(getCoordinates);
@@ -89,11 +91,19 @@ public class SliderAreaActivity extends AppCompatActivity {
         // Setup vibration
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
-        // Setup audio success sound
-        this.audioFeedback = new AudioFeedback();
-        this.soundIdCompletion = audioFeedback.getSoundPool().load(this, R.raw.completion_sound, 1);
-        this.soundIdDoubleTap = audioFeedback.getSoundPool().load(this, R.raw.doubletap, 1);
-        this.soundIdLongClick = audioFeedback.getSoundPool().load(this, R.raw.longclick, 1);
+        // Setup sounds
+        doubleTapSound = MediaPlayer.create(context, R.raw.doubletap);
+        doubleTapSound.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        doubleTapSound.setVolume(0.25F, 0.25F);
+
+        successSound = MediaPlayer.create(context, R.raw.completion_sound);
+        successSound.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        successSound.setVolume(0.25F, 0.25F);
+
+        longClickSound = MediaPlayer.create(context, R.raw.longclick);
+        longClickSound.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        longClickSound.setVolume(0.25F, 0.25F);
+
 
         // Setup tts component
         this.ttsObject = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
@@ -103,6 +113,13 @@ public class SliderAreaActivity extends AppCompatActivity {
         });
         Locale german = new Locale("de", "DE");
         ttsObject.setLanguage(german);
+
+        // add first measurement
+        if (phase.equals(STUDY)){
+            userData.addMeasurement(userData.getCurrentTargetList().get(userData.getCurrentTargetIndex()));
+        } else if (phase.equals(QUEST)){
+            userData.addMeasurement(userData.getCurrentQuestionList().get(userData.getCurrentQuestionIndex()));
+        }
 
     }
 
@@ -140,7 +157,10 @@ public class SliderAreaActivity extends AppCompatActivity {
             orientations.add(orientation_3);
             lengths.add(length_3);
         }
-        userData.setUserID(userData.getUserId() + "_" + feedbackModes.get(0) + "_" + lengths.get(0) + "_" + orientations.get(0) + "_" + phase);
+        String id = userData.getUserId() + "_" + feedbackModes.get(0) + "_" + lengths.get(0) + "_" + orientations.get(0) + "_" + phase;
+        userData.setUserID(id);
+        // Add ID to database
+        userData.createNewUserDataReference(id);
     }
 
     // Setup touch listener to determine the coordinates of the touch event to handle it accordingly
@@ -188,12 +208,14 @@ public class SliderAreaActivity extends AppCompatActivity {
     // Initialize first task
     private void startFirstTask() {
         if (phase.equals(STUDY) || phase.equals(QUEST)) {
-            audioFeedback.getSoundPool().play(soundIdDoubleTap, 0.5F, 0.5F, 1, 0, 1);
+
+            doubleTapSound.start();
             readAloudTarget();
             tasksStarted = true;
             // In trial task, return to selection screen
         } else {
-            audioFeedback.getSoundPool().play(soundIdCompletion, 0.5F, 0.5F, 1, 0, 1);
+            successSound.start();
+
             final String[] userId = userData.getUserId().split("_" + feedbackModes.get(currentVariant));
             userData.setUserID(userId[0]);
             finish();
@@ -213,12 +235,13 @@ public class SliderAreaActivity extends AppCompatActivity {
             toSpeak = question;
         }
 
-        final int interval = 500; // half a second
+        final int interval = 750; // half a second
         Handler handler = new Handler();
         Runnable runnable = new Runnable() {
             public void run() {
                 HashMap<String, String> params = new HashMap<String, String>();
                 params.put(TextToSpeech.Engine.KEY_PARAM_VOLUME, "0.15");
+                ttsObject.setSpeechRate(1.3F);
                 ttsObject.speak(toSpeak, TextToSpeech.QUEUE_FLUSH, params);
             }
         };
@@ -236,10 +259,10 @@ public class SliderAreaActivity extends AppCompatActivity {
                     userData.incrementCurrentTargetIndex();
                     userData.addMeasurement(userData.getCurrentTargetList().get(userData.getCurrentTargetIndex()));
                     taskCompleted = false;
-                    audioFeedback.getSoundPool().play(soundIdDoubleTap, 0.5F, 0.5F, 1, 0, 1);
+                    doubleTapSound.start();
                     readAloudTarget();
                 } else {
-                    audioFeedback.getSoundPool().play(soundIdCompletion, 0.5F, 0.5F, 1, 0, 1);
+                    successSound.start();
                     if (feedbackModes.size() > currentVariant + 1 ){
                         initializeNextVariant();
 
@@ -257,10 +280,10 @@ public class SliderAreaActivity extends AppCompatActivity {
                     userData.incrementCurrentQuestionIndex();
                     userData.addMeasurement(userData.getCurrentQuestionList().get(userData.getCurrentQuestionIndex()));
                     taskCompleted = false;
-                    audioFeedback.getSoundPool().play(soundIdDoubleTap, 0.5F, 0.5F, 1, 0, 1);
+                    doubleTapSound.start();
                     readAloudTarget();
                 } else {
-                    audioFeedback.getSoundPool().play(soundIdCompletion, 0.5F, 0.5F, 1, 0, 1);
+                    successSound.start();
                     if (feedbackModes.size() > currentVariant + 1 ){
                         initializeNextVariant();
                     } else {
@@ -274,19 +297,29 @@ public class SliderAreaActivity extends AppCompatActivity {
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     private void initializeNextVariant() {
+        final String[] userId = userData.getUserId().split("_" + feedbackModes.get(currentVariant));
         currentVariant = currentVariant +1;
         // set userId
-        final String[] userId = userData.getUserId().split("_" + feedbackModes.get(currentVariant));
-        userData.setUserID(userId[0] + "_" + feedbackModes.get(currentVariant) + "_" + lengths.get(currentVariant) + "_" + orientations.get(currentVariant) + "_" + phase);
+        String id = userId[0] + "_" + feedbackModes.get(currentVariant) + "_" + lengths.get(currentVariant) + "_" + orientations.get(currentVariant) + "_" + phase;
+        userData.setUserID(id);
+        userData.createNewUserDataReference(id);
         // reset indices;
         userData.resetCurrentTargetIndex();
         userData.resetCurrentQuestionIndex();
+        userData.setTargets(userData.createRandomizedTargetList(1));
+        userData.setQuestions(userData.createRandomizedQuestionList());
         // setup tactile area according to new variant
         tactileArea.changeLayout(feedbackModes.get(currentVariant), lengths.get(currentVariant), orientations.get(currentVariant));
 
         // reset variables
         tasksStarted = false;
         taskCompleted = false;
+
+        if (phase.equals(STUDY)){
+            userData.addMeasurement(userData.getCurrentTargetList().get(userData.getCurrentTargetIndex()));
+        } else if (phase.equals(QUEST)){
+            userData.addMeasurement(userData.getCurrentQuestionList().get(userData.getCurrentQuestionIndex()));
+        }
 
 
     }
@@ -307,7 +340,7 @@ public class SliderAreaActivity extends AppCompatActivity {
                             vibrator.vibrate(effect);
                         }
                     } else {
-                        audioFeedback.getSoundPool().play(soundIdLongClick, 1F, 1F, 1, 0, 1);
+                        longClickSound.start();
                     }
                     // start completionTimer and record values
                     startTask = System.currentTimeMillis();
@@ -327,7 +360,7 @@ public class SliderAreaActivity extends AppCompatActivity {
 
         // Set input value
         if (userData.getLastMeasurement().getMeasurementPairs().size() > 0){
-            audioFeedback.getSoundPool().play(soundIdDoubleTap, 1F, 1F, 1, 0, 1);
+            doubleTapSound.start();
             taskCompleted = true;
             startTask = 0;
             userData.getLastMeasurement().setInput(userData.getLastMeasurement().getMeasurementPairs().get(userData.getLastMeasurement().getMeasurementPairs().size() - 1).getValue());

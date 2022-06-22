@@ -25,27 +25,50 @@ import java.util.HashMap;
 
 public class JsonFormatter {
     private final Context context;
-    private ArrayList<String> userList;
+    private ArrayList<String> dataList;
+    private ArrayList<String> retrievedDataList;
     private ArrayList<CollectionReference> userDataReferences;
     private ArrayList<JSONObject> userDataJsonList;
-    private int studyDataCount;
+    private int dataSetCount;
+
+    private final int STUDY_VARIANTS = 3; // TODO: could change
+    private final int QUEST_VARIANTS = 2;
+    private final int STUDY_REPETITIONS = 1; // TODO: 3, == times
+    private final int STUDY_TASKS = 3; // TODO: 7
+    private final int QUEST_REPETITIONS = 1;
+    private final int QUEST_TASKS = 3;  // TODO: define!
+    private ArrayList<String> participants;
+
 
     public JsonFormatter(Context context){
         this.context = context;
-        // how many user data sets will be generated?
-        // repetitions of tasks * number of tasks * number of tests + numQuestions * numVariants
-        // 1 * 7 * 4
-        // TODO: set to 3 * 7 * 3 + (numQuestions * 2)
-        studyDataCount =  1 * 7 * 3 * 1;
-
     }
     // Get data from firebase and download each set as json
     public void downloadUserTestingData(){
-        getUserList();
+        // get number of participants
+        FirebaseFirestore firebase = FirebaseFirestore.getInstance();
+        CollectionReference collectionRef = firebase.collection("participants");
+        collectionRef
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                                           @Override
+                                           public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                                               if (task.isSuccessful()) {
+                                                   participants = new ArrayList<>();
+                                                   for (QueryDocumentSnapshot data : task.getResult()) {
+                                                        participants.add(data.getId());
+                                                   }
+                                                   dataSetCount = participants.size() * ((STUDY_VARIANTS * STUDY_TASKS * STUDY_REPETITIONS) + (QUEST_VARIANTS * QUEST_REPETITIONS * QUEST_TASKS));
+                                                   getDataList();
+                                               }
+                                           }
+                                       });
+
+
     }
 
-    private void getUserList() {
-        userList = new ArrayList<>();
+    private void getDataList() {
+        dataList = new ArrayList<>();
         FirebaseFirestore firebase = FirebaseFirestore.getInstance();
         CollectionReference collectionRef = firebase.collection("userDataCollectionNames");
         collectionRef
@@ -55,7 +78,7 @@ public class JsonFormatter {
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
                         if (task.isSuccessful()) {
                             for (QueryDocumentSnapshot documentUser : task.getResult()) {
-                                userList.add(documentUser.getId());
+                                dataList.add(documentUser.getId());
                             }
                             createCollectionReferences();
                         } else {
@@ -68,53 +91,52 @@ public class JsonFormatter {
     private void createCollectionReferences() {
         userDataReferences = new ArrayList<>();
         FirebaseFirestore firebase = FirebaseFirestore.getInstance();
-        for (String userId : userList){
-            // todo how to get list of all documents collectionPaths
-            //userDataReferences.add(firebase.collection(userId + "_audio_app"));
-            //userDataReferences.add(firebase.collection(userId + "_haptic_app"));
-
-        }
+        for (String user : dataList){
+                                userDataReferences.add(firebase.collection(user));
+                };
         createJsonsFromUserData();
     }
     
 
     private void createJsonsFromUserData() {
         userDataJsonList = new ArrayList<>();
+        retrievedDataList = new ArrayList<>();
         for (CollectionReference ref : userDataReferences){
             ref.get()
                     .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                         @Override
                         public void onComplete(@NonNull Task<QuerySnapshot> task) {
                             if (task.isSuccessful()) {
-                                int i = 1;
                                 for (QueryDocumentSnapshot data : task.getResult()) {
-                                    JSONObject json = new JSONObject();
-                                    try {
-                                        // For every user testing data, add user id, feedback and prototype type to JSON object
-                                        String completeUserName = data.getReference().getParent().getId();
-                                        String userId = completeUserName.split("_")[0];
-                                        String feedback = completeUserName.split("_")[1];
-                                        String prototype = completeUserName.split("_")[2];
-                                        String phase = completeUserName.split("_")[3];
-                                        json.put("userId", userId).put("feedback", feedback).put("prototype", prototype).put("phase", phase);
-                                        if (phase.equals("study")){
-                                            json.put("target", data.get("target")).put("input", data.get("input")).put("error", data.get("error")).put("completiontime", data.get("completionTime"));
-                                        } else if (phase.equals("questionnaire")){
-                                            json.put("question", data.get("question")).put("input", data.get("input")).put("completiontime", data.get("completionTime"));
-                                        }
-                                        json.put("measurementPairs", createJsonFromMeasurementPairs((ArrayList<HashMap>) data.get("measurementPairs")));
-                                        userDataJsonList.add(json);
-                                        i++;
+                                        retrievedDataList.add(data.getReference().getParent().getId());
+                                        JSONObject json = new JSONObject();
+                                        try {
+                                            // For every user testing data, add user id, feedback and prototype type to JSON object
+                                            String completeUserName = data.getReference().getParent().getId();
+                                            String userId = completeUserName.split("_")[0] + "_" + completeUserName.split("_")[1];
+                                            String feedback = completeUserName.split("_")[2];
+                                            String prototype = completeUserName.split("_")[3];
+                                            String orientation = completeUserName.split("_")[4];
+                                            String phase = completeUserName.split("_")[5];
+                                            json.put("userId", userId).put("feedback", feedback).put("prototype", prototype).put("orientation", orientation).put("phase", phase);
+                                            if (phase.equals("study")){
+                                                json.put("target", data.get("target")).put("input", data.get("input")).put("error", data.get("error")).put("completiontime", data.get("completionTime"));
+                                            } else if (phase.equals("questionnaire")){
+                                                json.put("question", data.get("question")).put("input", data.get("input")).put("completiontime", data.get("completionTime"));
+                                            }
+                                            json.put("measurementPairs", createJsonFromMeasurementPairs((ArrayList<HashMap>) data.get("measurementPairs")));
+                                            userDataJsonList.add(json);
 
-                                    } catch (JSONException e) {
-                                        e.printStackTrace();
-                                    }
-                                }
-                                if (userDataJsonList.size() == studyDataCount * userList.size()){
-                                    try {
-                                        storeJsonsInLocalStorage(groupJsonsByUserId());
-                                    } catch (JSONException e) {
-                                        e.printStackTrace();
+                                        } catch (JSONException e) {
+                                            e.printStackTrace();
+                                        }
+
+                                    if (userDataJsonList.size() == dataSetCount){
+                                        try {
+                                            storeJsonsInLocalStorage(groupJsonsByUserId());
+                                        } catch (JSONException e) {
+                                            e.printStackTrace();
+                                        }
                                     }
                                 }
 
@@ -144,7 +166,7 @@ public class JsonFormatter {
                 identifiedUsers.add((String) data.get("userId"));
                 i = 1;
                 userJSON = new JSONObject();
-                userJSON.put("data_" + i, data);
+                userJSON.put("task_" + i, data);
                 i ++;
             }
         }
@@ -159,6 +181,7 @@ public class JsonFormatter {
         for (HashMap measurementPair : measurementPairs){
             JSONObject pair = new JSONObject();
             pair.put("value", measurementPair.get("value"));
+            pair.put("xCoord", measurementPair.get("xCoord"));
             pair.put("timestamp", measurementPair.get("timestamp"));
             pairs.put("pair_" +i, pair);
             i++;
@@ -166,15 +189,16 @@ public class JsonFormatter {
         return pairs;
     }
 
-    private void storeJsonsInLocalStorage(ArrayList<JSONObject> groupedJsonList) {
+    // data/data/com.example.tactileslider/files
+    private void storeJsonsInLocalStorage(ArrayList<JSONObject> jsonList) {
         File dir = new File(context.getFilesDir(), "TactileSlider_userData");
         if (!dir.exists()) {
             dir.mkdir();
         }
         int i = 0;
-        for (JSONObject json : groupedJsonList) {
+        for (JSONObject json : jsonList) {
             try {
-                OutputStreamWriter outputStreamWriter = new OutputStreamWriter(context.openFileOutput(userList.get(i) + ".json", Context.MODE_PRIVATE));
+                OutputStreamWriter outputStreamWriter = new OutputStreamWriter(context.openFileOutput(participants.get(i) + ".json", Context.MODE_PRIVATE));
                 outputStreamWriter.write(String.valueOf(json));
                 outputStreamWriter.close();
                 Log.i("SUCCESS", "TactileSlider_userData " + dir + " " + context.getFilesDir());

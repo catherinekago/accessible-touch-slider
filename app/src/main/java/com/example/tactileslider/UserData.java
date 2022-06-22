@@ -17,22 +17,33 @@ public class UserData implements Serializable {
     private ArrayList<Measurement> measurementList = new ArrayList<Measurement>();
     private ArrayList<Double> targetList = new ArrayList<Double>();
     private ArrayList<String> questionList = new ArrayList<String>();
-    private int currentQuestionIndex;
-    private int currentTargetIndex;
+    private int currentQuestionIndex = 0;
+    private int currentTargetIndex = 0;
 
     public UserData(String userID, int times){
         this.userID = userID;
         this.targetList = createRandomizedTargetList(times);
         this.questionList = createRandomizedQuestionList();
         this.currentTargetIndex = 0;
-        this.addMeasurement(this.getCurrentTargetList().get(this.getCurrentTargetIndex()));
+        this.currentQuestionIndex = 0;
     }
 
-    private ArrayList<String> createRandomizedQuestionList() {
+    public void createNewUserDataReference(String id){
+        // add collection to firebase
+        FirebaseFirestore firebase = FirebaseFirestore.getInstance();
+        // add userID to firebase collectionList collection
+        Map<String, Object> userData = new HashMap<>();
+        userData.put("id", id);
+        firebase.collection("userDataCollectionNames").document(id).set(userData);
+    }
+
+    public ArrayList<String> createRandomizedQuestionList() {
 
         ArrayList<String> list = new ArrayList<String>();
         // TODO: add questions for questionnaire part here;
-
+        list.add("Wie fühlen Sie sich heute?");
+        list.add("Wie hungrig sind Sie?");
+        list.add("Wie müde sind Sie?");
         // Randomize questionList
         Collections.shuffle(list);
         return list;
@@ -50,6 +61,9 @@ public class UserData implements Serializable {
         this.currentQuestionIndex++;
     }
 
+    public void setQuestions(ArrayList<String> list) {this.questionList = list;}
+    public void setTargets(ArrayList<Double> list) {this.targetList = list;}
+
     public int getCurrentQuestionIndex(){
         return this.currentQuestionIndex;
     }
@@ -61,7 +75,7 @@ public class UserData implements Serializable {
         return this.targetList;
     }
 
-    private ArrayList<Double> createRandomizedTargetList(int times) {
+    public ArrayList<Double> createRandomizedTargetList(int times) {
         // CAUTION: Hardcoded values for range of sliders
         final double from = 1.00;
         final double until = 3.00; // TODO: 7
