@@ -160,8 +160,9 @@ public class JsonFormatter {
                 i++;
             } else {
                 if (userJSON.length() > 0){
-                    groupedJSON.put("user_" + identifiedUsers.size(), userJSON);
-                    dataByUsers.add(groupedJSON);
+                    //groupedJSON.put("user_" + identifiedUsers.size(), userJSON);
+                    //dataByUsers.add(groupedJSON);
+                    dataByUsers.add(userJSON);
                 }
                 identifiedUsers.add((String) data.get("userId"));
                 i = 1;
@@ -170,8 +171,9 @@ public class JsonFormatter {
                 i ++;
             }
         }
-        groupedJSON.put("user_" + identifiedUsers.size(), userJSON);
-        dataByUsers.add(groupedJSON);
+        //groupedJSON.put("user_" + identifiedUsers.size(), userJSON);
+        //dataByUsers.add(groupedJSON);
+        dataByUsers.add(userJSON);
         return dataByUsers;
     }
 
@@ -201,7 +203,7 @@ public class JsonFormatter {
                 OutputStreamWriter outputStreamWriter = new OutputStreamWriter(context.openFileOutput(participants.get(i) + ".json", Context.MODE_PRIVATE));
                 outputStreamWriter.write(String.valueOf(json));
                 outputStreamWriter.close();
-                Log.i("SUCCESS", "TactileSlider_userData " + dir + " " + context.getFilesDir());
+                Log.i("SUCCESS", "TactileSlider_userData " + dir + " " + participants.get(i));
                 i++;
             } catch (IOException e) {
                 Log.e("Exception", "File write failed: " + e.toString());
