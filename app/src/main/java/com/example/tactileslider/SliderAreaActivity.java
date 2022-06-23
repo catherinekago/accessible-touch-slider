@@ -213,6 +213,12 @@ public class SliderAreaActivity extends AppCompatActivity {
             readAloudTarget();
             tasksStarted = true;
             // In trial task, return to selection screen
+            if (phase.equals(STUDY)){
+                userData.addMeasurement(userData.getCurrentTargetList().get(userData.getCurrentTargetIndex()));
+            } else if (phase.equals(QUEST)){
+                userData.addMeasurement(userData.getCurrentQuestionList().get(userData.getCurrentQuestionIndex()));
+            }
+
         } else {
             successSound.start();
 
@@ -315,12 +321,6 @@ public class SliderAreaActivity extends AppCompatActivity {
         tasksStarted = false;
         taskCompleted = false;
 
-        if (phase.equals(STUDY)){
-            userData.addMeasurement(userData.getCurrentTargetList().get(userData.getCurrentTargetIndex()));
-        } else if (phase.equals(QUEST)){
-            userData.addMeasurement(userData.getCurrentQuestionList().get(userData.getCurrentQuestionIndex()));
-        }
-
 
     }
 
@@ -332,16 +332,16 @@ public class SliderAreaActivity extends AppCompatActivity {
             public boolean onLongClick(View view) {
                 if (!isLongClick && !taskCompleted) {
                     isLongClick = true;
-                    if (feedbackModes.get(currentVariant).equals(AUDIO) || feedbackModes.get(currentVariant).equals(COMBINED)) {
+                   // if (feedbackModes.get(currentVariant).equals(AUDIO) || feedbackModes.get(currentVariant).equals(COMBINED)) {
                         // Haptic feedback that slider is activated
-                        VibrationEffect effect = null;
-                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                            effect = VibrationEffect.createOneShot(150, 85);
-                            vibrator.vibrate(effect);
-                        }
-                    } else {
-                        longClickSound.start();
-                    }
+                        //VibrationEffect effect = null;
+                      //  if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                        //    effect = VibrationEffect.createOneShot(150, 85);
+                        //    vibrator.vibrate(effect);
+                      //  }
+                   // } else {
+                      //  longClickSound.start();
+                   // }
                     // start completionTimer and record values
                     startTask = System.currentTimeMillis();
 
