@@ -24,6 +24,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class SliderAreaActivity extends AppCompatActivity {
 
@@ -159,8 +162,10 @@ public class SliderAreaActivity extends AppCompatActivity {
         }
         String id = userData.getUserId() + "_" + feedbackModes.get(0) + "_" + lengths.get(0) + "_" + orientations.get(0) + "_" + phase;
         userData.setUserID(id);
-        // Add ID to database
-        userData.createNewUserDataReference(id);
+        // Add ID to database only if phase is study or quest
+        if (phase.equals(STUDY) || phase.equals(QUEST)) {
+            userData.createNewUserDataReference(id);
+        }
     }
 
     // Setup touch listener to determine the coordinates of the touch event to handle it accordingly
@@ -179,9 +184,10 @@ public class SliderAreaActivity extends AppCompatActivity {
                     case MotionEvent.ACTION_DOWN:
                         //Handle double click
                         if (clickTime - lastClickTime < DOUBLE_CLICK_TIME_DELTA) {
-                            if (tasksStarted && !taskCompleted) {
+                           // if (tasksStarted && !taskCompleted) {
+                               // handleValueSelection(); // no differentiation between select and continue
+                             if (tasksStarted && !taskCompleted) { // instead of && taskIsCompleted
                                 handleValueSelection();
-                            } else if (tasksStarted && taskCompleted) {
                                 continueWithNextTask();
                             } else if (!tasksStarted) {
                                 startFirstTask();
@@ -244,11 +250,33 @@ public class SliderAreaActivity extends AppCompatActivity {
         final int interval = 750; // half a second
         Handler handler = new Handler();
         Runnable runnable = new Runnable() {
+            private boolean firstVoiceRep;
+
             public void run() {
                 HashMap<String, String> params = new HashMap<String, String>();
                 params.put(TextToSpeech.Engine.KEY_PARAM_VOLUME, "0.15");
                 ttsObject.setSpeechRate(1.3F);
                 ttsObject.speak(toSpeak, TextToSpeech.QUEUE_FLUSH, params);
+                firstVoiceRep = true;
+
+                // repeat after 10 seconds if user did not start interacting with the touchscreen
+                Runnable helloRunnable = new Runnable() {
+                    public void run() {
+                        if(startTask == 0){
+                            if(firstVoiceRep){
+                                firstVoiceRep = false;
+                            }
+                            ttsObject.speak(toSpeak, TextToSpeech.QUEUE_FLUSH, params);
+                            // Stop repeating once user started to interact with the touchscreen
+                        } else {
+                            throw new RuntimeException();
+                        }
+                    }
+                };
+
+
+                ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+                executor.scheduleAtFixedRate(helloRunnable, 0, 10, TimeUnit.SECONDS);
             }
         };
         handler.postAtTime(runnable, System.currentTimeMillis() + interval);
@@ -265,7 +293,7 @@ public class SliderAreaActivity extends AppCompatActivity {
                     userData.incrementCurrentTargetIndex();
                     userData.addMeasurement(userData.getCurrentTargetList().get(userData.getCurrentTargetIndex()));
                     taskCompleted = false;
-                    doubleTapSound.start();
+                    //doubleTapSound.start();
                     readAloudTarget();
                 } else {
                     successSound.start();
@@ -330,6 +358,7 @@ public class SliderAreaActivity extends AppCompatActivity {
 
             @Override
             public boolean onLongClick(View view) {
+                longClickSound.start(); // independent of feedabck mode, make longklick sound
                 if (!isLongClick && !taskCompleted) {
                     isLongClick = true;
                    // if (feedbackModes.get(currentVariant).equals(AUDIO) || feedbackModes.get(currentVariant).equals(COMBINED)) {
