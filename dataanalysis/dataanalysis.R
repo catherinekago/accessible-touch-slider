@@ -354,7 +354,7 @@ createListOfMeasurementPairs = function (list){
 measurementPairList = createListOfMeasurementPairs(sliderdataList);
 
 # Save plots per variant, limtied to X rows (to define)
-saveVariantPlots = function(finallist, variant, ncol, nrow, labellist, pageNr){
+saveVariantPlots = function(type, finallist, variant, ncol, nrow, labellist, pageNr){
     pageTxt = paste("page ", pageNr, sep="");
     
     # Create Plot
@@ -373,19 +373,30 @@ saveVariantPlots = function(finallist, variant, ncol, nrow, labellist, pageNr){
     plot = annotate_figure(plot, bottom = text_grob(pageTxt, color = "black", size=18));
     
     # Save Plot as PNG
-    path = paste("C:\\Users\\kathr_\\OneDrive\\Desktop\\HCI Master\\2.Semester\\IndPrak\\DataAnalysis\\prestudy\\", variant, "_page_", pageNr, ".png", sep ="");
+    if (type =="xCoord"){
+      path = paste("C:\\Users\\kathr_\\OneDrive\\Desktop\\HCI Master\\2.Semester\\IndPrak\\DataAnalysis\\prestudy\\", variant, "_xCOORD_", "_page_", pageNr, ".png", sep ="");
+    } else if (type == "overTime"){
+      path = paste("C:\\Users\\kathr_\\OneDrive\\Desktop\\HCI Master\\2.Semester\\IndPrak\\DataAnalysis\\prestudy\\", variant, "_OVERTIME_", "_page_", pageNr, ".png", sep ="");
+    }
+
     
     png(file=path, width=2600, height=2000)
     print(plot);
     dev.off()
     
-  }
+}
+
+# Calculate speed of finger movement 
+calculateSpeed = function (oldPair, newPair){
+ 
+    
+}
 
 
 
 # Create plots for measurement Pairs, for a given variant
 
-createVariantPlot <- function(t1, t2, t3, t4, t5, t6, t7){
+createVariantPlot <- function(type, t1, t2, t3, t4, t5, t6, t7){
   
   finallist = list();
   plotlist = list();
@@ -395,6 +406,7 @@ createVariantPlot <- function(t1, t2, t3, t4, t5, t6, t7){
   
   # tList = list(t1, t2, t3);
   count = 1; 
+  lastPair = list (0,0,0,0); 
   # go through every row of the data frames with the tasks
   for (row in 1:nrow(t1)){
     plotRow = list();
@@ -409,39 +421,56 @@ createVariantPlot <- function(t1, t2, t3, t4, t5, t6, t7){
       
       # create dataframe for pairs of each variant
       for (pair in pairs){
-        if (t1[4] == "horizontal"){
-          x = c(x, pair[[1]]);
-          y = c(y, pair[[2]]);
-          
-          
-          
-          if (pair[[1]] > target){
-            overshoot = c(overshoot, "yes");
+        
+        # for xCoord Plot
+        if (type == "xCoord"){
+          if (t1[4] == "horizontal"){
+            x = c(x, pair[[1]]);
+            y = c(y, pair[[2]]);
+            
+            
+            
+            if (pair[[1]] > target){ overshoot = c(overshoot, "yes");
+            } else { overshoot = c(overshoot, "no"); }
           } else {
-            overshoot = c(overshoot, "no");
-          }
-        } else {
-          x = c(x, pair[[2]]);
-          y = c(y, pair[[1]]);
-
-          if (pair[[1]] > target){
-            overshoot = c(overshoot, "yes");
-          } else {
-            overshoot = c(overshoot, "no");
+            x = c(x, pair[[2]]);
+            y = c(y, pair[[1]]);
+            
+            if (pair[[1]] > target){ overshoot = c(overshoot, "yes");
+            } else { overshoot = c(overshoot, "no"); }
           }
         }
+        
+        # for overTime Plot
+        if (type =="overTime"){
+          x = c(x, pair[[3]]);
+          y = c(y, pair[[1]]);
+          if (pair[[1]] > target){ overshoot = c(overshoot, "yes");
+          } else { overshoot = c(overshoot, "no"); }
+        }
+        
+        # for speed Plot
+        if (type =="speed"){
+          x = c(x, pair[[3]]);
+          y = c(y, calculateSpeed(lastPair, pair))
+          if (pair[[1]] > target){ overshoot = c(overshoot, "yes");
+          } else { overshoot = c(overshoot, "no"); }
+        }
+
 
         
         time = c(time, pair[[3]]);
+        lastPair = pair; 
         
       }
       
-      # recalculate values to mm
-      if(t1[4] == "horizontal"){
-        y = y * width_MM / width_PX;
-      } else {
-        x = x * width_MM / width_PX;
-      }
+      if (type == "xCoord"){
+      
+      # recalculate x coord values to mm
+      if(t1[4] == "horizontal"){ y = y * width_MM / width_PX;
+      } else { x = x * width_MM / width_PX;}
+        # recalculate overtime to seconds
+      } else if (type == "overTime" || type =="speed"){ x = x / 1000; }
 
       dataframe = data.frame(x,y,time, overshoot);
       plotRow = c(plotRow, list(dataframe))
@@ -452,20 +481,20 @@ createVariantPlot <- function(t1, t2, t3, t4, t5, t6, t7){
     
     # set ratio according to orientation and length
     ratio =0; 
-    if (t1[4] == "vertical"){
-      if (t1[3] == "short"){ratio = ratio = 5/9; 
-      } else { ratio = 8/9; }
-      
-    } else {  if (t1[3] == "short"){  ratio = ratio = 6/4.5; 
-      } else {  ratio = 6/9; }
-    }
+    if (type == "xCoord"){
+      if (t1[4] == "vertical"){
+        if (t1[3] == "short"){ratio = ratio = 5/9; 
+        } else { ratio = 8/9; }
+        
+      } else {  if (t1[3] == "short"){  ratio = ratio = 6/4.5; 
+      } else {  ratio = 6/9; } }
+    } else if (type == "overTime" || type =="speed"){ ratio = 6/9; }
     
-
     
     colors = c("#80CDC1", "#EB5559");
-     # create plot row
-
-        if (t1[4][1] == "horizontal"){
+    if (type == "xCoord"){
+      # create plot row for XCOORD ~ TARGET
+      if (t1[4][1] == "horizontal"){
         p1 = ggplot(plotRow[[1]], aes(x=x, y=y, color = overshoot)) + geom_point(alpha = 0.3, size = 1.5) + scale_x_continuous(limits= c(0,7), breaks = seq(1, 8, 1)) + ylim(0,width_MM) + theme(legend.text = element_text(size=24, face="bold"), legend.title = element_text(size = 32, face = "bold"), aspect.ratio=ratio, axis.text=element_text(size=24), axis.title=element_text(size=32,face="bold")) + labs(y = "vertical position (mm)", x = "steps") + scale_colour_discrete(limits = c("yes", "no"));
         p2 = ggplot(plotRow[[2]], aes(x=x, y=y, color = overshoot)) + geom_point(alpha = 0.3, size = 1.5) + scale_x_continuous(limits= c(0,7), breaks = seq(1, 8, 1)) + ylim(0,width_MM) + theme(legend.text = element_text(size=24, face="bold"),legend.title = element_text(size = 32, face = "bold"), aspect.ratio=ratio, axis.text=element_text(size=24), axis.title=element_text(size=32,face="bold")) + labs(y = "vertical position (mm)", x = "steps") + scale_colour_discrete(limits = c("yes", "no"));
         p3 = ggplot(plotRow[[3]], aes(x=x, y=y, color = overshoot)) + geom_point(alpha = 0.3, size = 1.5) + scale_x_continuous(limits= c(0,7), breaks = seq(1, 8, 1)) + ylim(0,width_MM) + theme(legend.text = element_text(size=24, face="bold"),legend.title = element_text(size = 32, face = "bold"), aspect.ratio=ratio, axis.text=element_text(size=24), axis.title=element_text(size=32,face="bold")) + labs(y = "vertical position (mm)", x = "steps") + scale_colour_discrete(limits = c("yes", "no"));
@@ -473,23 +502,37 @@ createVariantPlot <- function(t1, t2, t3, t4, t5, t6, t7){
         p5 = ggplot(plotRow[[5]], aes(x=x, y=y, color = overshoot)) + geom_point(alpha = 0.3, size = 1.5) + scale_x_continuous(limits= c(0,7), breaks = seq(1, 8, 1)) + ylim(0,width_MM) + theme(legend.text = element_text(size=24, face="bold"),legend.title = element_text(size = 32, face = "bold"), aspect.ratio=ratio, axis.text=element_text(size=24), axis.title=element_text(size=32,face="bold")) + labs(y = "vertical position (mm)", x = "steps") + scale_colour_discrete(limits = c("yes", "no"));
         p6 = ggplot(plotRow[[6]], aes(x=x, y=y, color = overshoot)) + geom_point(alpha = 0.3, size = 1.5) + scale_x_continuous(limits= c(0,7), breaks = seq(1, 8, 1)) + ylim(0,width_MM) + theme(legend.text = element_text(size=24, face="bold"),legend.title = element_text(size = 32, face = "bold"), aspect.ratio=ratio, axis.text=element_text(size=24), axis.title=element_text(size=32,face="bold")) + labs(y = "vertical position (mm)", x = "steps") + scale_colour_discrete(limits = c("yes", "no"));
         p7 = ggplot(plotRow[[7]], aes(x=x, y=y, color = overshoot)) + geom_point(alpha = 0.3, size = 1.5) + scale_x_continuous(limits= c(0,7), breaks = seq(1, 8, 1)) + ylim(0,width_MM) + theme(legend.text = element_text(size=24, face="bold"), legend.title = element_text(size = 32, face = "bold"), aspect.ratio=ratio, axis.text=element_text(size=24), axis.title=element_text(size=32,face="bold")) + labs(y = "vertical position (mm)", x = "steps") + scale_colour_discrete(limits = c("yes", "no"));
-
+        
         plotlist = list(p1, p2, p3, p4, p5, p6, p7);
         finallist = c(finallist, plotlist);
-        } else {
-          p1 = ggplot(plotRow[[1]], aes(x=x, y=y, color = overshoot)) + geom_point(alpha = 0.3, size = 1.5) + scale_y_continuous(limits= c(0,7), breaks = seq(1, 8, 1)) + xlim(0,width_MM) + theme(legend.text = element_text(size=24, face="bold"),legend.title = element_text(size = 32, face = "bold"), aspect.ratio=ratio, axis.text=element_text(size=24), axis.title=element_text(size=32,face="bold")) + labs(x = "horizontal position (mm)", y = "steps") + scale_colour_discrete(limits = c("yes", "no"));
-          p2 = ggplot(plotRow[[2]], aes(x=x, y=y, color = overshoot)) + geom_point(alpha = 0.3, size = 1.5) + scale_y_continuous(limits= c(0,7), breaks = seq(1, 8, 1)) + xlim(0,width_MM) + theme(legend.text = element_text(size=24, face="bold"),legend.title = element_text(size = 32, face = "bold"), aspect.ratio=ratio, axis.text=element_text(size=24), axis.title=element_text(size=32,face="bold")) + labs(x = "horizontal position (mm)", y = "steps") + scale_colour_discrete(limits = c("yes", "no"));
-          p3 = ggplot(plotRow[[3]], aes(x=x, y=y, color = overshoot)) + geom_point(alpha = 0.3, size = 1.5) + scale_y_continuous(limits= c(0,7), breaks = seq(1, 8, 1)) + xlim(0,width_MM) + theme(legend.text = element_text(size=24, face="bold"),legend.title = element_text(size = 32, face = "bold"), aspect.ratio=ratio, axis.text=element_text(size=24), axis.title=element_text(size=32,face="bold")) + labs(x = "horizontal position (mm)", y = "steps") + scale_colour_discrete(limits = c("yes", "no"));
-          p4 = ggplot(plotRow[[4]], aes(x=x, y=y, color = overshoot)) + geom_point(alpha = 0.3, size = 1.5) + scale_y_continuous(limits= c(0,7), breaks = seq(1, 8, 1)) + xlim(0,width_MM) + theme(legend.text = element_text(size=24, face="bold"),legend.title = element_text(size = 32, face = "bold"), aspect.ratio=ratio, axis.text=element_text(size=24), axis.title=element_text(size=32,face="bold")) + labs(x = "horizontal position (mm)", y = "steps") + scale_colour_discrete(limits = c("yes", "no"));
-          p5 = ggplot(plotRow[[5]], aes(x=x, y=y, color = overshoot)) + geom_point(alpha = 0.3, size = 1.5) + scale_y_continuous(limits= c(0,7), breaks = seq(1, 8, 1)) + xlim(0,width_MM) + theme(legend.text = element_text(size=24, face="bold"),legend.title = element_text(size = 32, face = "bold"), aspect.ratio=ratio, axis.text=element_text(size=24), axis.title=element_text(size=32,face="bold")) + labs(x = "horizontal position (mm)", y = "steps") + scale_colour_discrete(limits = c("yes", "no"));
-          p6 = ggplot(plotRow[[6]], aes(x=x, y=y, color = overshoot)) + geom_point(alpha = 0.3, size = 1.5) + scale_y_continuous(limits= c(0,7), breaks = seq(1, 8, 1)) + xlim(0,width_MM) + theme(legend.text = element_text(size=24, face="bold"),legend.title = element_text(size = 32, face = "bold"), aspect.ratio=ratio, axis.text=element_text(size=24), axis.title=element_text(size=32,face="bold")) + labs(x = "horizontal position (mm)", y = "steps") + scale_colour_discrete(limits = c("yes", "no"));
-          p7 = ggplot(plotRow[[7]], aes(x=x, y=y, color = overshoot)) + geom_point(alpha = 0.3, size = 1.5) + scale_y_continuous(limits= c(0,7), breaks = seq(1, 8, 1)) + xlim(0,width_MM) + theme(legend.text = element_text(size=24, face="bold"),legend.title = element_text(size = 32, face = "bold"), aspect.ratio=ratio, axis.text=element_text(size=24), axis.title=element_text(size=32,face="bold")) + labs(x = "horizontal position (mm)", y = "steps") + scale_colour_discrete(limits = c("yes", "no"));
-
-          plotlist = list(p1, p2, p3, p4, p5, p6, p7);
-          finallist = c(finallist, plotlist);
-          }
+      } else {
+        p1 = ggplot(plotRow[[1]], aes(x=x, y=y, color = overshoot)) + geom_point(alpha = 0.3, size = 1.5) + scale_y_continuous(limits= c(0,7), breaks = seq(1, 8, 1)) + xlim(0,width_MM) + theme(legend.text = element_text(size=24, face="bold"),legend.title = element_text(size = 32, face = "bold"), aspect.ratio=ratio, axis.text=element_text(size=24), axis.title=element_text(size=32,face="bold")) + labs(x = "horizontal position (mm)", y = "steps") + scale_colour_discrete(limits = c("yes", "no"));
+        p2 = ggplot(plotRow[[2]], aes(x=x, y=y, color = overshoot)) + geom_point(alpha = 0.3, size = 1.5) + scale_y_continuous(limits= c(0,7), breaks = seq(1, 8, 1)) + xlim(0,width_MM) + theme(legend.text = element_text(size=24, face="bold"),legend.title = element_text(size = 32, face = "bold"), aspect.ratio=ratio, axis.text=element_text(size=24), axis.title=element_text(size=32,face="bold")) + labs(x = "horizontal position (mm)", y = "steps") + scale_colour_discrete(limits = c("yes", "no"));
+        p3 = ggplot(plotRow[[3]], aes(x=x, y=y, color = overshoot)) + geom_point(alpha = 0.3, size = 1.5) + scale_y_continuous(limits= c(0,7), breaks = seq(1, 8, 1)) + xlim(0,width_MM) + theme(legend.text = element_text(size=24, face="bold"),legend.title = element_text(size = 32, face = "bold"), aspect.ratio=ratio, axis.text=element_text(size=24), axis.title=element_text(size=32,face="bold")) + labs(x = "horizontal position (mm)", y = "steps") + scale_colour_discrete(limits = c("yes", "no"));
+        p4 = ggplot(plotRow[[4]], aes(x=x, y=y, color = overshoot)) + geom_point(alpha = 0.3, size = 1.5) + scale_y_continuous(limits= c(0,7), breaks = seq(1, 8, 1)) + xlim(0,width_MM) + theme(legend.text = element_text(size=24, face="bold"),legend.title = element_text(size = 32, face = "bold"), aspect.ratio=ratio, axis.text=element_text(size=24), axis.title=element_text(size=32,face="bold")) + labs(x = "horizontal position (mm)", y = "steps") + scale_colour_discrete(limits = c("yes", "no"));
+        p5 = ggplot(plotRow[[5]], aes(x=x, y=y, color = overshoot)) + geom_point(alpha = 0.3, size = 1.5) + scale_y_continuous(limits= c(0,7), breaks = seq(1, 8, 1)) + xlim(0,width_MM) + theme(legend.text = element_text(size=24, face="bold"),legend.title = element_text(size = 32, face = "bold"), aspect.ratio=ratio, axis.text=element_text(size=24), axis.title=element_text(size=32,face="bold")) + labs(x = "horizontal position (mm)", y = "steps") + scale_colour_discrete(limits = c("yes", "no"));
+        p6 = ggplot(plotRow[[6]], aes(x=x, y=y, color = overshoot)) + geom_point(alpha = 0.3, size = 1.5) + scale_y_continuous(limits= c(0,7), breaks = seq(1, 8, 1)) + xlim(0,width_MM) + theme(legend.text = element_text(size=24, face="bold"),legend.title = element_text(size = 32, face = "bold"), aspect.ratio=ratio, axis.text=element_text(size=24), axis.title=element_text(size=32,face="bold")) + labs(x = "horizontal position (mm)", y = "steps") + scale_colour_discrete(limits = c("yes", "no"));
+        p7 = ggplot(plotRow[[7]], aes(x=x, y=y, color = overshoot)) + geom_point(alpha = 0.3, size = 1.5) + scale_y_continuous(limits= c(0,7), breaks = seq(1, 8, 1)) + xlim(0,width_MM) + theme(legend.text = element_text(size=24, face="bold"),legend.title = element_text(size = 32, face = "bold"), aspect.ratio=ratio, axis.text=element_text(size=24), axis.title=element_text(size=32,face="bold")) + labs(x = "horizontal position (mm)", y = "steps") + scale_colour_discrete(limits = c("yes", "no"));
         
-     print(paste ("row %% 10=", row%%10, "row== nrow(t1)", row==nrow(t1), sep =""));
+        plotlist = list(p1, p2, p3, p4, p5, p6, p7);
+        finallist = c(finallist, plotlist);
+      }
+      
+      # create plot row for overTime ~ Target
+    } else if (type == "overTime"){
+      p1 = ggplot(plotRow[[1]], aes(x=x, y=y, color = overshoot)) + geom_point(alpha = 0.3, size = 1.5) + scale_y_continuous(limits= c(0,7), breaks = seq(1, 8, 1)) + xlim(0,max(data_STUDY$Completiontime)/1000) + theme(legend.text = element_text(size=24, face="bold"),legend.title = element_text(size = 32, face = "bold"), aspect.ratio=ratio, axis.text=element_text(size=24), axis.title=element_text(size=32,face="bold")) + labs(x = "time (s)", y = "steps") + scale_colour_discrete(limits = c("yes", "no"));
+      p2 = ggplot(plotRow[[2]], aes(x=x, y=y, color = overshoot)) + geom_point(alpha = 0.3, size = 1.5) + scale_y_continuous(limits= c(0,7), breaks = seq(1, 8, 1)) + xlim(0,max(data_STUDY$Completiontime)/1000) + theme(legend.text = element_text(size=24, face="bold"),legend.title = element_text(size = 32, face = "bold"), aspect.ratio=ratio, axis.text=element_text(size=24), axis.title=element_text(size=32,face="bold")) + labs(x = "time (s)", y = "steps") + scale_colour_discrete(limits = c("yes", "no"));
+      p3 = ggplot(plotRow[[3]], aes(x=x, y=y, color = overshoot)) + geom_point(alpha = 0.3, size = 1.5) + scale_y_continuous(limits= c(0,7), breaks = seq(1, 8, 1)) + xlim(0,max(data_STUDY$Completiontime)/1000) + theme(legend.text = element_text(size=24, face="bold"),legend.title = element_text(size = 32, face = "bold"), aspect.ratio=ratio, axis.text=element_text(size=24), axis.title=element_text(size=32,face="bold")) + labs(x = "time (s)", y = "steps") + scale_colour_discrete(limits = c("yes", "no"));
+      p4 = ggplot(plotRow[[4]], aes(x=x, y=y, color = overshoot)) + geom_point(alpha = 0.3, size = 1.5) + scale_y_continuous(limits= c(0,7), breaks = seq(1, 8, 1)) + xlim(0,max(data_STUDY$Completiontime)/1000) + theme(legend.text = element_text(size=24, face="bold"),legend.title = element_text(size = 32, face = "bold"), aspect.ratio=ratio, axis.text=element_text(size=24), axis.title=element_text(size=32,face="bold")) + labs(x = "time (s)", y = "steps") + scale_colour_discrete(limits = c("yes", "no"));
+      p5 = ggplot(plotRow[[5]], aes(x=x, y=y, color = overshoot)) + geom_point(alpha = 0.3, size = 1.5) + scale_y_continuous(limits= c(0,7), breaks = seq(1, 8, 1)) + xlim(0,max(data_STUDY$Completiontime)/1000) + theme(legend.text = element_text(size=24, face="bold"),legend.title = element_text(size = 32, face = "bold"), aspect.ratio=ratio, axis.text=element_text(size=24), axis.title=element_text(size=32,face="bold")) + labs(x = "time (s)", y = "steps") + scale_colour_discrete(limits = c("yes", "no"));
+      p6 = ggplot(plotRow[[6]], aes(x=x, y=y, color = overshoot)) + geom_point(alpha = 0.3, size = 1.5) + scale_y_continuous(limits= c(0,7), breaks = seq(1, 8, 1)) + xlim(0,max(data_STUDY$Completiontime)/1000) + theme(legend.text = element_text(size=24, face="bold"),legend.title = element_text(size = 32, face = "bold"), aspect.ratio=ratio, axis.text=element_text(size=24), axis.title=element_text(size=32,face="bold")) + labs(x = "time (s)", y = "steps") + scale_colour_discrete(limits = c("yes", "no"));
+      p7 = ggplot(plotRow[[7]], aes(x=x, y=y, color = overshoot)) + geom_point(alpha = 0.3, size = 1.5) + scale_y_continuous(limits= c(0,7), breaks = seq(1, 8, 1)) + xlim(0,max(data_STUDY$Completiontime)/1000) + theme(legend.text = element_text(size=24, face="bold"),legend.title = element_text(size = 32, face = "bold"), aspect.ratio=ratio, axis.text=element_text(size=24), axis.title=element_text(size=32,face="bold")) + labs(x = "time (s)", y = "steps") + scale_colour_discrete(limits = c("yes", "no"));
+      
+      plotlist = list(p1, p2, p3, p4, p5, p6, p7);
+      finallist = c(finallist, plotlist);
+    }
+
+        
      # create page for every 10 plot rows 
      nrow = 0; 
      if (row %%10 ==0){
@@ -503,7 +546,7 @@ createVariantPlot <- function(t1, t2, t3, t4, t5, t6, t7){
        labellist = c("1", "2", "3", "4", "5", "6", "7");
        #labellist = c("1", "2", "3");
       
-       saveVariantPlots(finallist, variant, ncol, nrow, labellist, pageNr);
+       saveVariantPlots(type, finallist, variant, ncol, nrow, labellist, pageNr);
        pageNr = pageNr + 1; 
        finallist = c();
      }
@@ -512,8 +555,6 @@ createVariantPlot <- function(t1, t2, t3, t4, t5, t6, t7){
 
   
 }
-
-# !!!!!!  TODO adjust to number ot targets
 
 orderTasksForPlotting <- function(list){
   targets = unique(data_STUDY$Target);
@@ -531,7 +572,8 @@ orderTasksForPlotting <- function(list){
     subTask6 = subset(variant, variant$Target == 6, select = c("UserId","Feedback", "Length", "Orientation", "Phase", "Input", "Target", "Error", "Completiontime")); 
     subTask7 = subset(variant, variant$Target == 7, select = c("UserId","Feedback", "Length", "Orientation", "Phase", "Input", "Target", "Error", "Completiontime")); 
     
-    createVariantPlot(subTask1, subTask2, subTask3, subTask4, subTask5, subTask6, subTask7);
+    createVariantPlot("xCoord", subTask1, subTask2, subTask3, subTask4, subTask5, subTask6, subTask7);
+    createVariantPlot("overTime", subTask1, subTask2, subTask3, subTask4, subTask5, subTask6, subTask7);
     }
 
   
