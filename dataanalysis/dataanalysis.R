@@ -11,17 +11,18 @@ library(plyr)
 library(DescTools)
 library(rcompanion)
 library(ggplot2)
+library(lemon)
 options(scipen = 999)
 
 #### ------ Step 1 : Import Data Sets ------ ####
 width_PX = 1536;
-width_MM = 1470;
+width_MM = 147.0;
 
 length_L_PX = 1680;
-length_L_MM = 1610; 
+length_L_MM = 161.0; 
 
 length_S_PX = 840;
-length_S_MM = 805; 
+length_S_MM = 80.5; 
 
 
 plotColor = "#BBE8E7";
@@ -138,7 +139,9 @@ calculateBacktrackingDistance = function (task){
 
   }
   
+  
   stepLength = pathLengthMM / 6;
+  print(stepLength);
   
   backTrackingMM = stepLength * backTrackingDist;
   return (backTrackingMM);
@@ -148,25 +151,75 @@ calculateBacktrackingDistance = function (task){
 sliderdata = createDataFrame(sliderdataList)
 
 
-# Create boxplot for backtracking
-sliderdata %>% 
-  ggplot(aes(y= BacktrackingDist, x=Feedback, fill=Feedback)) +
-  scale_fill_manual(values = c(audioColor, combinedColor, tactileColor)) +
-  geom_boxplot() +
-  ggtitle("Backtracking Distance per Variant and Target") + 
-  geom_jitter(width=0.05,alpha=0.15, colour  ="#031d44") +
-  xlab("\nFeedback\n")+ 
-  ylab("\nBacktracking Distance (mm)\n")+ 
-  facet_grid(Target ~ Orientation + Length, margins=TRUE, drop = TRUE) + 
-  theme(axis.text.x = element_text(angle = 45, hjust = 1), panel.grid.major = element_line(linetype = "blank"), 
-        panel.grid.minor = element_line(linetype = "solid"), 
-        axis.title = element_text(family = "sans", size = 15, color = "#031d44", margin=margin(0, 40, 0, 40)), 
-        axis.text = element_text(family = "mono", size = 12, color= "#031d44"),
-        plot.title = element_text(family = "sans", size = 18, face="bold", color = "#031d44", margin=margin(30,0,30,0)),
-        strip.background = element_rect(fill = "#031d44"),
-        strip.text = element_text(face="bold", size=9, color="white"), 
-        legend.text=element_text(family = "mono", size = 9, color= "#031d44"),
-        legend.title=element_text(family = "mono", size = 12, color= "#031d44", margin=margin(0, 25, 0, 0)))
+# Create barplot for backtracking
+
+createBacktrackingPlot = function (df){
+  df = subset(df, Phase == "study");
+  
+  # calculate mean and sd backtracking distance (mm)
+  summary_df = df %>%
+    group_by(Feedback, Length, Orientation, Target) %>% 
+    summarise_at(vars("BacktrackingDist"), c(mean, sd));
+  col_names = c("Feedback", "Length", "Orientation", "Target", "Mean", "SD")
+  colnames(summary_df) = col_names; 
+  
+  # plot for each target individually
+  #summary_df %>% 
+  #  ggplot(aes(y= Mean, x=Feedback, fill=Feedback)) +
+  #  scale_fill_manual(values = c(audioColor, combinedColor, tactileColor)) +
+  #  geom_bar(stat="identity", 
+  #           position=position_dodge()) +
+  #  geom_errorbar(aes(ymin=Mean-SD, ymax=Mean+SD), width=.2,
+  #                position=position_dodge(.9)) +
+  #  ggtitle("Backtracking Distance per Variant and Target") + 
+#xlab("\nFeedback\n")+ 
+  #  ylab("\nBacktracking Distance (mm)\n")+ 
+  #  facet_grid(Target ~ Orientation + Length, margins=TRUE, drop = TRUE) + 
+  #  theme(axis.text.x = element_text(angle = 45, hjust = 1), panel.grid.major = element_line(linetype = "blank"), 
+  #        panel.grid.minor = element_line(linetype = "solid"), 
+  #        axis.title = element_text(family = "sans", size = 15, color = "#031d44", margin=margin(0, 40, 0, 40)), 
+ #         axis.text = element_text(family = "mono", size = 12, color= "#031d44"),
+  #        plot.title = element_text(family = "sans", size = 18, face="bold", color = "#031d44", margin=margin(30,0,30,0)),
+  #        strip.background = element_rect(fill = "#031d44"),
+  #        strip.text = element_text(face="bold", size=9, color="white"), 
+  #        legend.text=element_text(family = "mono", size = 9, color= "#031d44"),
+  #        legend.title=element_text(family = "mono", size = 12, color= "#031d44", margin=margin(0, 25, 0, 0)))
+  
+  # plot with all targets within one plot
+  plot = summary_df %>% 
+    ggplot(aes(y= Mean, x=Target, fill=Feedback)) +
+    geom_col(position = position_dodge(20)) +
+    scale_fill_manual(values = c(audioColor, combinedColor, tactileColor)) +
+    geom_bar(stat="identity", position=position_dodge(.9)) +
+    geom_errorbar(aes(ymax = Mean + SD, ymin = ifelse(Mean - SD < 0, 0, Mean - SD)), width=.2,
+                  position=position_dodge(.9)) +
+    ggtitle("Backtracking Distance per Variant and Target") + 
+    xlab("\nTarget\n")+ 
+    ylab("\nBacktracking Distance (mm)\n")+ 
+    scale_y_continuous(expand = c(0, 0)) + 
+    facet_rep_grid(Length ~ Orientation, margins=TRUE, drop = TRUE, repeat.tick.labels = TRUE) + 
+    scale_x_continuous(limits= c(0,7), breaks = seq(1, 8, 1), expand = c(0, 0)) +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1), panel.grid.major = element_line(linetype = "blank"), 
+          panel.grid.minor = element_line(linetype = "solid"), 
+          axis.title = element_text(family = "sans", size = 15, color = "#031d44", margin=margin(0, 40, 0, 40)), 
+          axis.text = element_text(family = "mono", size = 15, color= "#031d44"),
+          plot.title = element_text(family = "sans", size = 18, face="bold", color = "#031d44", margin=margin(30,0,30,0)),
+          strip.background = element_rect(fill = "#031d44"),
+          strip.text = element_text(face="bold", size=15, color="white"), 
+          legend.text=element_text(family = "mono", size = 15, color= "#031d44"),
+          legend.title=element_text(family = "mono", size = 15, color= "#031d44", margin=margin(0, 25, 0, 0)))
+  
+  # Save Plot as PNG
+  path = "C:\\Users\\kathr_\\OneDrive\\Desktop\\HCI Master\\2.Semester\\IndPrak\\DataAnalysis\\prestudy\\backtrackingDist.png";
+  
+  png(file=path, width=1000, height=750)
+  print(plot);
+  dev.off()
+  
+}
+
+createBacktrackingPlot(sliderdata);
+
 
 # Create data frames separated by study and questionnaire for quantitative data analysis
 
