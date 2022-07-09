@@ -29,6 +29,7 @@ public class TactileArea {
     private static final String VERTICAL = "vertical" ;
     private static final String SHORT = "short" ;
     private static final String LONG = "long" ;
+    private final UserData userData;
     View sliderView;
     TextView coorinatesView;
     private final String COORD_PREFIX = "Touch Input:   ";
@@ -81,6 +82,7 @@ public class TactileArea {
         this.orientation = orientation;
         this.phase = phase;
         this.context = context;
+        this.userData = userData; 
 
         audioFeedback = MediaPlayer.create(context, R.raw.piep);
         audioFeedback.setAudioStreamType(AudioManager.STREAM_MUSIC);
@@ -134,7 +136,7 @@ public class TactileArea {
 
         }
         sliderView.setLayoutParams(new LinearLayout.LayoutParams(sliderView.getMeasuredWidth(), sliderLength));
-        coorinatesView.setText("width of tactile area: " + sliderLength);
+        coorinatesView.setText(userData.getUserId());
         heightTopBar = coorinatesView.getMeasuredHeight();
         likertCoords = calculateLikertYCords(heightTopBar, this.sliderLength);
         ArrayList<Integer> likertCoordRanges = new ArrayList<Integer>();
@@ -205,13 +207,13 @@ public class TactileArea {
     public void handleTouchEvent(int xTouch, int yTouch, UserData userData, long taskStart, String phase) {
 
         userInputValue = calculateLikertValue(yTouch);
-        boolean valueIsMin = userInputValue >= 1.0;
-        boolean valueIsNotMax = userInputValue <=7.0;
+        boolean valueIsMin = userInputValue >= 0.0;
+        boolean valueIsNotMax = userInputValue <=8.0;
         if(valueIsMin && valueIsNotMax) {
             if (coordRanges.contains(yTouch)) {
                 LikertItem crossedItem = likertItems.get(getLikertIndexFromRange(yTouch));
                 sliderView.getBackground().setAlpha(crossedItem.getAlphaValue());
-                coorinatesView.setText(COORD_PREFIX + userInputValue);
+                //coorinatesView.setText(COORD_PREFIX + userInputValue);
 
                 // Generate audio feedback
                 if ((feedbackMode.equals(AUDIO) || (feedbackMode.equals(COMBINED))) && System.currentTimeMillis() > MIN_PAUSE + lastPlayTime) {
@@ -238,7 +240,8 @@ public class TactileArea {
 
                 }
             }
-            coorinatesView.setText(COORD_PREFIX + userInputValue);
+
+
             // Write measurementPair to userData
             if (phase.equals(STUDY) || phase.equals(QUEST)) {
                 userData.getLastMeasurement().addMeasurementPair(xTouch, userInputValue, (long) System.currentTimeMillis() - taskStart);

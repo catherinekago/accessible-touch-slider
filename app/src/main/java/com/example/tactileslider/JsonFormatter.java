@@ -33,12 +33,11 @@ public class JsonFormatter {
 
     private final int STUDY_VARIANTS = 3; // TODO: could change
     private final int QUEST_VARIANTS = 2;
-    private final int STUDY_REPETITIONS = 1; // TODO: 3, == times
-    private final int STUDY_TASKS = 3; // TODO: 7
+    private final int STUDY_REPETITIONS = 10;
+    private final int STUDY_TASKS = 7;
     private final int QUEST_REPETITIONS = 1;
     private final int QUEST_TASKS = 3;  // TODO: define!
     private ArrayList<String> participants;
-
 
     public JsonFormatter(Context context){
         this.context = context;
@@ -58,7 +57,7 @@ public class JsonFormatter {
                                                    for (QueryDocumentSnapshot data : task.getResult()) {
                                                         participants.add(data.getId());
                                                    }
-                                                   dataSetCount = participants.size() * ((STUDY_VARIANTS * STUDY_TASKS * STUDY_REPETITIONS) + (QUEST_VARIANTS * QUEST_REPETITIONS * QUEST_TASKS));
+                                                   dataSetCount = participants.size() * ((STUDY_VARIANTS * STUDY_TASKS * STUDY_REPETITIONS));  // TODO + (QUEST_VARIANTS * QUEST_REPETITIONS * QUEST_TASKS));
                                                    getDataList();
                                                }
                                            }
@@ -130,10 +129,12 @@ public class JsonFormatter {
                                         } catch (JSONException e) {
                                             e.printStackTrace();
                                         }
-
+                                    Log.i("JSON", String.valueOf(userDataJsonList.size()));
                                     if (userDataJsonList.size() == dataSetCount){
                                         try {
+                                            Log.i("JSON", "start grouping");
                                             storeJsonsInLocalStorage(groupJsonsByUserId());
+
                                         } catch (JSONException e) {
                                             e.printStackTrace();
                                         }

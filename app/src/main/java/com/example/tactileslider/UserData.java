@@ -78,7 +78,7 @@ public class UserData implements Serializable {
     public ArrayList<Double> createRandomizedTargetList(int times) {
         // CAUTION: Hardcoded values for range of sliders
         final double from = 1.00;
-        final double until = 3.00; // TODO: 7
+        final double until = 7.00;
 
         // Fill targetlist with values
         ArrayList<Double> list = new ArrayList<Double>();

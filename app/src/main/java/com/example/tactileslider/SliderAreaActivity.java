@@ -15,6 +15,7 @@ import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.lang.reflect.Array;
@@ -71,6 +72,7 @@ public class SliderAreaActivity extends AppCompatActivity {
     private MediaPlayer doubleTapSound;
     private MediaPlayer successSound;
     private MediaPlayer longClickSound;
+    private TextView coorinatesView;
 
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -85,6 +87,7 @@ public class SliderAreaActivity extends AppCompatActivity {
 
         this.context = this;
         tactileArea = new TactileArea(this, userData, feedbackModes.get(currentVariant), lengths.get(currentVariant), orientations.get(currentVariant), phase, context);
+        coorinatesView = findViewById(R.id.topBar);
 
         View.OnTouchListener getCoordinates = setUpTapAndMotionListener();
         findViewById(R.id.mainView).setOnTouchListener(getCoordinates);
@@ -242,41 +245,23 @@ public class SliderAreaActivity extends AppCompatActivity {
         if (phase.equals(STUDY)) {
             int target = (int) Math.round(userData.getCurrentTargetList().get(userData.getCurrentTargetIndex()));
             toSpeak = "Bitte wählen Sie die " + target + ".";
+            coorinatesView.setText(userData.getUserId() + ":      Target " + userData.getCurrentTargetList().get(userData.getCurrentTargetIndex()));
         } else {
             String question = userData.getCurrentQuestionList().get(userData.getCurrentQuestionIndex());
             toSpeak = question;
+            coorinatesView.setText(userData.getUserId() + ":      Question " + userData.getCurrentQuestionList().get(userData.getCurrentQuestionIndex()));
         }
 
-        final int interval = 750; // half a second
+        final int interval = 500; // half a second
         Handler handler = new Handler();
         Runnable runnable = new Runnable() {
-            private boolean firstVoiceRep;
+
 
             public void run() {
                 HashMap<String, String> params = new HashMap<String, String>();
                 params.put(TextToSpeech.Engine.KEY_PARAM_VOLUME, "0.15");
                 ttsObject.setSpeechRate(1.3F);
                 ttsObject.speak(toSpeak, TextToSpeech.QUEUE_FLUSH, params);
-                firstVoiceRep = true;
-
-                // repeat after 10 seconds if user did not start interacting with the touchscreen
-                Runnable helloRunnable = new Runnable() {
-                    public void run() {
-                        if(startTask == 0){
-                            if(firstVoiceRep){
-                                firstVoiceRep = false;
-                            }
-                            ttsObject.speak(toSpeak, TextToSpeech.QUEUE_FLUSH, params);
-                            // Stop repeating once user started to interact with the touchscreen
-                        } else {
-                            throw new RuntimeException();
-                        }
-                    }
-                };
-
-
-                ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
-                executor.scheduleAtFixedRate(helloRunnable, 0, 10, TimeUnit.SECONDS);
             }
         };
         handler.postAtTime(runnable, System.currentTimeMillis() + interval);
@@ -340,7 +325,7 @@ public class SliderAreaActivity extends AppCompatActivity {
         // reset indices;
         userData.resetCurrentTargetIndex();
         userData.resetCurrentQuestionIndex();
-        userData.setTargets(userData.createRandomizedTargetList(1));
+        userData.setTargets(userData.createRandomizedTargetList(10));
         userData.setQuestions(userData.createRandomizedQuestionList());
         // setup tactile area according to new variant
         tactileArea.changeLayout(feedbackModes.get(currentVariant), lengths.get(currentVariant), orientations.get(currentVariant));

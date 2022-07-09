@@ -39,7 +39,7 @@ public class StartActivity extends AppCompatActivity {
 
     private final String TRIAL = "trial";
     private final String STUDY = "study";
-    private final int STUDY_REPETITIONS = 1; // TODO: set to 3
+    private final int STUDY_REPETITIONS = 10; // TODO: set to 10
     private final String QUEST = "questionnaire";
 
     private AppCompatButton downloadButton;
