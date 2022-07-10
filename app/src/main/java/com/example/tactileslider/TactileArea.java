@@ -204,7 +204,7 @@ public class TactileArea {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
-    public void handleTouchEvent(int xTouch, int yTouch, UserData userData, long taskStart, String phase) {
+    public void handleTouchEvent(int xTouch, int yTouch, UserData userData, long taskStart, String phase, Boolean taskStarted) {
 
         userInputValue = calculateLikertValue(yTouch);
         boolean valueIsMin = userInputValue >= 0.0;
@@ -243,7 +243,7 @@ public class TactileArea {
 
 
             // Write measurementPair to userData
-            if (phase.equals(STUDY) || phase.equals(QUEST)) {
+            if ((phase.equals(STUDY) || phase.equals(QUEST)) && taskStarted) {
                 userData.getLastMeasurement().addMeasurementPair(xTouch, userInputValue, (long) System.currentTimeMillis() - taskStart);
             }
         }

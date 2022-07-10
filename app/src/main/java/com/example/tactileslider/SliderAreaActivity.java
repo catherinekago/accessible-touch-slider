@@ -191,7 +191,7 @@ public class SliderAreaActivity extends AppCompatActivity {
                                // handleValueSelection(); // no differentiation between select and continue
                              if (tasksStarted && !taskCompleted) { // instead of && taskIsCompleted
                                 handleValueSelection();
-                                continueWithNextTask();
+                                continueWithNextTask();1
                             } else if (!tasksStarted) {
                                 startFirstTask();
                             }
@@ -200,7 +200,7 @@ public class SliderAreaActivity extends AppCompatActivity {
                         break;
                     case MotionEvent.ACTION_MOVE:
                         if (isLongClick) {
-                            tactileArea.handleTouchEvent(xTouch, yTouch, userData, startTask, phase);
+                            tactileArea.handleTouchEvent(xTouch, yTouch, userData, startTask, phase, tasksStarted);
                         }
                         break;
                     case MotionEvent.ACTION_UP:
