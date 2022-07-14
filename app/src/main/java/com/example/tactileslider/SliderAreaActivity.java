@@ -191,7 +191,7 @@ public class SliderAreaActivity extends AppCompatActivity {
                                // handleValueSelection(); // no differentiation between select and continue
                              if (tasksStarted && !taskCompleted) { // instead of && taskIsCompleted
                                 handleValueSelection();
-                                continueWithNextTask();1
+                                continueWithNextTask();
                             } else if (!tasksStarted) {
                                 startFirstTask();
                             }
@@ -383,6 +383,11 @@ public class SliderAreaActivity extends AppCompatActivity {
 
             userData.pushDataToDatabase(phase);
         }
+
+    }
+
+    @Override
+    public void onBackPressed () {
 
     }
 
