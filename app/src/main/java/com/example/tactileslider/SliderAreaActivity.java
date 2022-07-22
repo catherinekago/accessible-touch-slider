@@ -189,7 +189,9 @@ public class SliderAreaActivity extends AppCompatActivity {
                         if (clickTime - lastClickTime < DOUBLE_CLICK_TIME_DELTA) {
                            // if (tasksStarted && !taskCompleted) {
                                // handleValueSelection(); // no differentiation between select and continue
-                             if (tasksStarted && !taskCompleted) { // instead of && taskIsCompleted
+                            // Only allow to proceed to next task if user has provided input (attempt to avoid skipping of questions)
+                            boolean userInputExistent = userData.getLastMeasurement().getMeasurementPairs().size() > 0;
+                             if (tasksStarted && !taskCompleted && userInputExistent) {
                                 handleValueSelection();
                                 continueWithNextTask();
                             } else if (!tasksStarted) {
