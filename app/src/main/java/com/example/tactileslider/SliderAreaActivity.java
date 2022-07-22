@@ -201,6 +201,8 @@ public class SliderAreaActivity extends AppCompatActivity {
                     case MotionEvent.ACTION_MOVE:
                         if (isLongClick) {
                             tactileArea.handleTouchEvent(xTouch, yTouch, userData, startTask, phase, tasksStarted);
+                            // TODO: is this triggered in double tap?
+                            Log.d("On Touch Event","MOVED");
                         }
                         break;
                     case MotionEvent.ACTION_UP:
@@ -373,16 +375,24 @@ public class SliderAreaActivity extends AppCompatActivity {
     private void handleValueSelection() {
 
         // Set input value
-        if (userData.getLastMeasurement().getMeasurementPairs().size() > 0){
+        //if (userData.getLastMeasurement().getMeasurementPairs().size() > 0){
+        // TODO test again if all 70 measures come up if double tap without moving
             doubleTapSound.start();
             taskCompleted = true;
             startTask = 0;
+        if (userData.getLastMeasurement().getMeasurementPairs().size() > 0){
             userData.getLastMeasurement().setInput(userData.getLastMeasurement().getMeasurementPairs().get(userData.getLastMeasurement().getMeasurementPairs().size() - 1).getValue());
             // Set completion time value
             userData.getLastMeasurement().setCompletionTime((long) userData.getLastMeasurement().getMeasurementPairs().get(userData.getLastMeasurement().getMeasurementPairs().size() - 1).getTimestamp());
 
-            userData.pushDataToDatabase(phase);
+        } else {
+            userData.getLastMeasurement().setInput(-1);
+            // Set completion time value
+            userData.getLastMeasurement().setCompletionTime((long) -1);
+
         }
+            userData.pushDataToDatabase(phase);
+       // }
 
     }
 
