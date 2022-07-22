@@ -185,6 +185,7 @@ public class SliderAreaActivity extends AppCompatActivity {
 
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
+                        Log.i("TOUCHED AT ", String.valueOf(xTouch + ", " + yTouch));
                         //Handle double click
                         if (clickTime - lastClickTime < DOUBLE_CLICK_TIME_DELTA) {
                            // if (tasksStarted && !taskCompleted) {
@@ -203,8 +204,6 @@ public class SliderAreaActivity extends AppCompatActivity {
                     case MotionEvent.ACTION_MOVE:
                         if (isLongClick) {
                             tactileArea.handleTouchEvent(xTouch, yTouch, userData, startTask, phase, tasksStarted);
-                            // TODO: is this triggered in double tap?
-                            Log.d("On Touch Event","MOVED");
                         }
                         break;
                     case MotionEvent.ACTION_UP:
@@ -345,6 +344,7 @@ public class SliderAreaActivity extends AppCompatActivity {
     private View.OnLongClickListener setUpLongClickListener() {
         View.OnLongClickListener handleLongClick = new View.OnLongClickListener() {
 
+            @RequiresApi(api = Build.VERSION_CODES.N)
             @Override
             public boolean onLongClick(View view) {
                 longClickSound.start(); // independent of feedabck mode, make longklick sound
@@ -362,6 +362,8 @@ public class SliderAreaActivity extends AppCompatActivity {
                    // }
                     // start completionTimer and record values
                     startTask = System.currentTimeMillis();
+                    // Check for finger position and provide feedback
+                    tactileArea.handleTouchEvent(xTouch, yTouch, userData, startTask, phase, tasksStarted);
 
                 }
                 return false;
