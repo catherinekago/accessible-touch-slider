@@ -34,7 +34,7 @@ tactileColor = "#98E3FF"
 
 setwd("C:/Users/kathr_/OneDrive/Desktop/HCI Master/2.Semester/IndPrak/DataAnalysis/prestudy")
 sliderDataPath = "C:/Users/kathr_/OneDrive/Desktop/HCI Master/2.Semester/IndPrak/DataAnalysis/prestudy/json/"
-id_participants = c("P_1")
+id_participants = c("P_1", "P_2", "P_3", "P_4", "P_5");
 
 # Import all JSON files as data frames into a list
 import_data <- function(path, ids) {

@@ -130,7 +130,8 @@ public class JsonFormatter {
                                             e.printStackTrace();
                                         }
                                     Log.i("JSON", String.valueOf(userDataJsonList.size()));
-                                    if (userDataJsonList.size() == dataSetCount){
+                                    Log.i("JSONDATASETCOUNT", String.valueOf(dataSetCount));
+                                    if (userDataJsonList.size() == dataSetCount){ // pilot 1014
                                         try {
                                             Log.i("JSON", "start grouping");
                                             storeJsonsInLocalStorage(groupJsonsByUserId());
