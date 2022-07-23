@@ -3,13 +3,13 @@ package com.example.tactileslider;
 public class LikertItem {
     private Integer yCoord;
     private int alphaValue;
-    private float frequencyValue;
+    private int sound;
     private int amplitudeValue;
 
-    public LikertItem(Integer coord, int alphaValue, float freqValue, int amplitudeValue) {
+    public LikertItem(Integer coord, int alphaValue, int sound, int amplitudeValue) {
         this.yCoord = coord;
         this.alphaValue = alphaValue;
-        this.frequencyValue = freqValue;
+        this.sound = sound;
         this.amplitudeValue = amplitudeValue;
     }
 
@@ -17,8 +17,8 @@ public class LikertItem {
         return alphaValue;
     }
 
-    public float getFrequencyValue() {
-        return frequencyValue;
+    public int getSound() {
+        return sound;
     }
     public float getAmplitudeValue() {
         return amplitudeValue;
