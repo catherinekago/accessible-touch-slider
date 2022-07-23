@@ -345,20 +345,8 @@ public class SliderAreaActivity extends AppCompatActivity {
             @RequiresApi(api = Build.VERSION_CODES.N)
             @Override
             public boolean onLongClick(View view) {
-                longClickSound.start(); // independent of feedabck mode, make longklick sound
                 if (!isLongClick && !taskCompleted) {
                     isLongClick = true;
-                   // if (feedbackModes.get(currentVariant).equals(AUDIO) || feedbackModes.get(currentVariant).equals(COMBINED)) {
-                        // Haptic feedback that slider is activated
-                        //VibrationEffect effect = null;
-                      //  if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                        //    effect = VibrationEffect.createOneShot(150, 85);
-                        //    vibrator.vibrate(effect);
-                      //  }
-                   // } else {
-                      //  longClickSound.start();
-                   // }
-                    // start completionTimer and record values
                     startTask = System.currentTimeMillis();
                     // Check for finger position and provide feedback
                     tactileArea.handleTouchEvent(xTouch, yTouch, userData, startTask, phase, tasksStarted);
