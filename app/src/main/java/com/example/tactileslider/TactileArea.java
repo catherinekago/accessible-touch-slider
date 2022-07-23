@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.LinearLayout;
@@ -17,6 +18,7 @@ import android.widget.TextView;
 
 import androidx.annotation.RequiresApi;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Timer;
@@ -38,7 +40,7 @@ public class TactileArea {
     private int heightTopBar;
     private ArrayList<Integer> likertCoords = new ArrayList<Integer>();
     private int likertSpacing;
-    private final int LIKERT_PADDING = 5; // vibrotactile feedback not working as accurately as audio here
+    private final int LIKERT_PADDING = 20; // vibrotactile feedback not working as accurately as audio here // 1dp == 0.16mm
     private ArrayList<LikertItem> likertItems = new ArrayList<LikertItem>();
     private double userInputValue = 0.0;
     private int soundId;
@@ -55,7 +57,7 @@ public class TactileArea {
     private final float MIN_FREQ = 0.5F;
     private final float MAX_FREQ = 2.0F;
     private long lastPlayTime = 0;
-    private final long MIN_PAUSE = 300;
+    private final long MIN_PAUSE = 400;
     private final String AUDIO = "audio";
 
     //Vibration Feedback
@@ -211,20 +213,25 @@ public class TactileArea {
         boolean valueIsNotMax = userInputValue <=8.0;
         if(valueIsMin && valueIsNotMax) {
             if (coordRanges.contains(yTouch)) {
+
                 LikertItem crossedItem = likertItems.get(getLikertIndexFromRange(yTouch));
                 sliderView.getBackground().setAlpha(crossedItem.getAlphaValue());
                 //coorinatesView.setText(COORD_PREFIX + userInputValue);
 
                 // Generate audio feedback
                 if ((feedbackMode.equals(AUDIO) || (feedbackMode.equals(COMBINED))) && System.currentTimeMillis() > MIN_PAUSE + lastPlayTime) {
+
                     PlaybackParams params = new PlaybackParams();
                     params.setPitch(crossedItem.getFrequencyValue());
-                    params.setSpeed(0.75F);
+                    params.setSpeed(1.0F);
                     audioFeedback.setPlaybackParams(params);
-                    audioFeedback.start();
+                    audioFeedback.setVolume(0.1F, 0.1F); // TODO: remove after debugging
 
+                    // Attempt to better sync audio and tactile feedback by only playing audio here when it is pure audio
                     if (feedbackMode.equals(AUDIO)) {
                         lastPlayTime = System.currentTimeMillis();
+                        audioFeedback.seekTo(0);
+                        audioFeedback.start();
                     }
 
                     // Generate tactile feedback
@@ -233,10 +240,19 @@ public class TactileArea {
                     // Haptic feedback that slider is activated
                     VibrationEffect effect = null;
                     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                        effect = VibrationEffect.createOneShot(150, (int) crossedItem.getAmplitudeValue());
-                        vibrator.vibrate(effect);
+                        effect = VibrationEffect.createOneShot(75, (int) crossedItem.getAmplitudeValue());
                         lastPlayTime = System.currentTimeMillis();
+
+                        // Attempt to better sync audio and tactile feedback by playing vibration and audio close to each other
+                        if (feedbackMode.equals(COMBINED)) {
+                            vibrator.vibrate(effect);
+                            audioFeedback.seekTo(0);
+                            audioFeedback.start();
+                        } else {
+                            vibrator.vibrate(effect);
+                        }
                     }
+
 
                 }
             }
