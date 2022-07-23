@@ -24,6 +24,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -175,6 +176,9 @@ public class StartActivity extends AppCompatActivity {
                 variants.add((String) second.getTag());
             }
         }
+        // Randomize variants
+        Collections.shuffle(variants);
+  
         return variants;
     }
 
