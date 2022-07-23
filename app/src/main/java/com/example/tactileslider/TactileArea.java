@@ -49,7 +49,7 @@ public class TactileArea {
     // Audio Feedback
     private SoundPool soundPool;
     private long lastPlayTime = 0;
-    private final long MIN_PAUSE_SAME_STEP = 300;
+    private final long MIN_PAUSE_SAME_STEP = 350;
     private final String AUDIO = "audio";
 
     //Vibration Feedback
@@ -177,20 +177,13 @@ public class TactileArea {
     private ArrayList<Integer> createSoundList() {
         ArrayList<Integer> sounds = new ArrayList<Integer>();
         Collections.addAll(sounds,
-               // soundPool.load(context, R.raw.C6, 1),
-               // soundPool.load(context, R.raw.G5, 1),
-               // soundPool.load(context, R.raw.E5, 1),
-               // soundPool.load(context, R.raw.C5, 1),
-               // soundPool.load(context, R.raw.E5, 1),
-               // soundPool.load(context, R.raw.G5, 1),
-               // soundPool.load(context, R.raw.C6, 1)
-               soundPool.load(context, R.raw.piep, 1),
-                soundPool.load(context, R.raw.piep, 1),
-                soundPool.load(context, R.raw.piep, 1),
-                soundPool.load(context, R.raw.piep, 1),
-                soundPool.load(context, R.raw.piep, 1),
-                soundPool.load(context, R.raw.piep, 1),
-                soundPool.load(context, R.raw.piep, 1)
+               soundPool.load(context, R.raw.c5, 1),
+               soundPool.load(context, R.raw.g4, 1),
+               soundPool.load(context, R.raw.e4, 1),
+               soundPool.load(context, R.raw.c4, 1),
+               soundPool.load(context, R.raw.e4, 1),
+               soundPool.load(context, R.raw.g4, 1),
+               soundPool.load(context, R.raw.c5, 1)
         );
         return sounds;
     }
@@ -225,7 +218,7 @@ public class TactileArea {
                 // Generate audio feedback
                 if (feedbackMode.equals(AUDIO) || feedbackMode.equals(COMBINED)) {                    // If it is the same step and the pause has passed, or it is a new step, or the first step
                     if (lastCrossedItem == null || crossedItem.getAlphaValue() == lastCrossedItem.getAlphaValue() && System.currentTimeMillis() > MIN_PAUSE_SAME_STEP + lastPlayTime || crossedItem.getAlphaValue() != lastCrossedItem.getAlphaValue()) {
-                        soundPool.play(crossedItem.getSound(), 0.1F, 0.1F, 1, 0, 1f); // TODO set volume
+                        soundPool.play(crossedItem.getSound(), 0.5F, 0.5F, 1, 0, 1f);
                         if (feedbackMode.equals(AUDIO)){
                             lastPlayTime = System.currentTimeMillis();
                             lastCrossedItem = crossedItem;
