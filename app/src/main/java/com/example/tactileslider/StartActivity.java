@@ -178,7 +178,7 @@ public class StartActivity extends AppCompatActivity {
         }
         // Randomize variants
         Collections.shuffle(variants);
-  
+
         return variants;
     }
 

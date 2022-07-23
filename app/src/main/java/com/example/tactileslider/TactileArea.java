@@ -34,7 +34,7 @@ public class TactileArea {
     private int heightTopBar;
     private ArrayList<Integer> likertCoords = new ArrayList<Integer>();
     private int likertSpacing;
-    private final int LIKERT_PADDING = 20; // vibrotactile feedback not working as accurately as audio here // 1dp == 0.16mm
+    private final int LIKERT_PADDING = 15; // vibrotactile feedback not working as accurately as audio here // 1dp == 0.16mm
     private ArrayList<LikertItem> likertItems = new ArrayList<LikertItem>();
     private double userInputValue = 0.0;
     private int soundId;
