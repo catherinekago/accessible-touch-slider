@@ -36,17 +36,8 @@ public class SliderAreaActivity extends AppCompatActivity {
     private int xTouch;
     private int yTouch;
 
-    private final String AUDIO = "audio";
-    private final String TACTILE = "tactile";
-    private final String COMBINED = "combined";
-    private final String LONG = "long";
-    private final String SHORT = "short";
-    private final String HORIZONTAL = "horizontal";
-    private final String VERTICAL = "vertical";
-
     private final String TRIAL = "trial";
     private final String STUDY = "study";
-    private final int STUDY_REPETITIONS = 1; // TODO: set to 3
     private final String QUEST = "questionnaire";
     private Context context;
 
@@ -190,11 +181,18 @@ public class SliderAreaActivity extends AppCompatActivity {
                         if (clickTime - lastClickTime < DOUBLE_CLICK_TIME_DELTA) {
                            // if (tasksStarted && !taskCompleted) {
                                // handleValueSelection(); // no differentiation between select and continue
-                            // Only allow to proceed to next task if user has provided input (attempt to avoid skipping of questions)
-                            boolean userInputExistent = userData.getLastMeasurement().getMeasurementPairs().size() > 0;
-                             if (tasksStarted && !taskCompleted && userInputExistent) {
-                                handleValueSelection();
-                                continueWithNextTask();
+
+                             if (tasksStarted && !taskCompleted) {
+                                 // Only allow to proceed to next task if user has provided input (attempt to avoid skipping of questions)
+                                 if ((phase.equals(STUDY) || phase.equals(QUEST)) && userData.getLastMeasurement().getMeasurementPairs().size() > 0){
+                                     handleValueSelection();
+                                     continueWithNextTask();
+                                 }
+                                 if (!phase.equals(STUDY) && !phase.equals(QUEST)) {
+                                     handleValueSelection();
+                                     continueWithNextTask();
+                                 }
+
                             } else if (!tasksStarted) {
                                 startFirstTask();
                             }

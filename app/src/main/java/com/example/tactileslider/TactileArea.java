@@ -223,13 +223,15 @@ public class TactileArea {
                 //coorinatesView.setText(COORD_PREFIX + userInputValue);
 
                 // Generate audio feedback
-                if (feedbackMode.equals(AUDIO) || feedbackMode.equals(COMBINED))
-                    // If it is the same step and the pause has passed, or it is a new step, or the first step
-                    if(lastCrossedItem == null || crossedItem.getAlphaValue() == lastCrossedItem.getAlphaValue() && System.currentTimeMillis() > MIN_PAUSE_SAME_STEP + lastPlayTime || crossedItem.getAlphaValue() != lastCrossedItem.getAlphaValue()) {
+                if (feedbackMode.equals(AUDIO) || feedbackMode.equals(COMBINED)) {                    // If it is the same step and the pause has passed, or it is a new step, or the first step
+                    if (lastCrossedItem == null || crossedItem.getAlphaValue() == lastCrossedItem.getAlphaValue() && System.currentTimeMillis() > MIN_PAUSE_SAME_STEP + lastPlayTime || crossedItem.getAlphaValue() != lastCrossedItem.getAlphaValue()) {
                         soundPool.play(crossedItem.getSound(), 0.1F, 0.1F, 1, 0, 1f); // TODO set volume
-                        lastPlayTime = System.currentTimeMillis();
-                        lastCrossedItem = crossedItem;
+                        if (feedbackMode.equals(AUDIO)){
+                            lastPlayTime = System.currentTimeMillis();
+                            lastCrossedItem = crossedItem;
+                        }
                     }
+                }
 
                     // Generate tactile feedback
                 if (feedbackMode.equals(TACTILE) || feedbackMode.equals(COMBINED)){
@@ -247,6 +249,7 @@ public class TactileArea {
 
 
                 }
+
             }
 
 
