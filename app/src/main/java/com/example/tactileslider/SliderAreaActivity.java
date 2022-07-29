@@ -21,6 +21,7 @@ import android.widget.Toast;
 import java.lang.reflect.Array;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
@@ -36,9 +37,6 @@ public class SliderAreaActivity extends AppCompatActivity {
     private int xTouch;
     private int yTouch;
 
-    private final String TRIAL = "trial";
-    private final String STUDY = "study";
-    private final String QUEST = "questionnaire";
     private Context context;
 
     // Touch Gestures
@@ -55,11 +53,9 @@ public class SliderAreaActivity extends AppCompatActivity {
     // Intent Extras
     UserData userData;
     ArrayList<String> feedbackModes;
-    ArrayList<String> lengths;
     ArrayList<String> orientations;
 
     int currentVariant = 0;
-    String phase;
     private MediaPlayer doubleTapSound;
     private MediaPlayer successSound;
     private MediaPlayer longClickSound;
@@ -112,54 +108,36 @@ public class SliderAreaActivity extends AppCompatActivity {
         ttsObject.setLanguage(german);
 
         // add first measurement
-        if (phase.equals(STUDY)){
-            userData.addMeasurement(userData.getCurrentTargetList().get(userData.getCurrentTargetIndex()));
-        } else if (phase.equals(QUEST)){
-            userData.addMeasurement(userData.getCurrentQuestionList().get(userData.getCurrentQuestionIndex()));
-        }
+        userData.addMeasurement(userData.getCurrentTargetList().get(userData.getCurrentTargetIndex()));
+
 
     }
 
     // Get data from intent
     private void getExtras() {
-        feedbackModes = new ArrayList<>();
-        orientations = new ArrayList<>();
-        lengths = new ArrayList<>();
 
-
-        this.phase = (String) getIntent().getExtras().get("phase");
         userData = (UserData) getIntent().getSerializableExtra("userData");
 
         String feedbackMode_1 = (String) getIntent().getExtras().get("feedbackMode_1");
         String orientation_1 = (String) getIntent().getExtras().get("orientation_1");
-        String length_1 = (String) getIntent().getExtras().get("length_1");
+        String feedbackMode_2 = (String) getIntent().getExtras().get("feedbackMode_2");
+        String orientation_2 = (String) getIntent().getExtras().get("orientation_2");
+        String feedbackMode_3 = (String) getIntent().getExtras().get("feedbackMode_3");
+        String orientation_3 = (String) getIntent().getExtras().get("orientation_3");
+        String feedbackMode_4 = (String) getIntent().getExtras().get("feedbackMode_4");
+        String orientation_4 = (String) getIntent().getExtras().get("orientation_4");
+        String feedbackMode_5 = (String) getIntent().getExtras().get("feedbackMode_5");
+        String orientation_5 = (String) getIntent().getExtras().get("orientation_5");
+        String feedbackMode_6 = (String) getIntent().getExtras().get("feedbackMode_6");
+        String orientation_6 = (String) getIntent().getExtras().get("orientation_6");
 
-        feedbackModes.add(feedbackMode_1);
-        orientations.add(orientation_1);
-        lengths.add(length_1);
+        feedbackModes = new ArrayList<>(Arrays.asList(feedbackMode_1, feedbackMode_2, feedbackMode_3, feedbackMode_4, feedbackMode_5, feedbackMode_6));
+        orientations = new ArrayList<>(Arrays.asList(orientation_1, orientation_2, orientation_3, orientation_4, orientation_5, orientation_6));
 
-        if (phase.equals(STUDY) || phase.equals(QUEST)) {
-            String feedbackMode_2 = (String) getIntent().getExtras().get("feedbackMode_2");
-            String length_2 = (String) getIntent().getExtras().get("length_2");
-            String orientation_2 = (String) getIntent().getExtras().get("orientation_2");
-            feedbackModes.add(feedbackMode_2);
-            orientations.add(orientation_2);
-            lengths.add(length_2);
-        }
-        if (phase.equals(STUDY) && (String) getIntent().getExtras().get("feedbackMode_3") != null) {
-            String feedbackMode_3 = (String) getIntent().getExtras().get("feedbackMode_3");
-            String length_3 = (String) getIntent().getExtras().get("length_3");
-            String orientation_3 = (String) getIntent().getExtras().get("orientation_3");
-            feedbackModes.add(feedbackMode_3);
-            orientations.add(orientation_3);
-            lengths.add(length_3);
-        }
-        String id = userData.getUserId() + "_" + feedbackModes.get(0) + "_" + lengths.get(0) + "_" + orientations.get(0) + "_" + phase;
+        String id = userData.getUserId() + "_" + feedbackModes.get(0) + "_" + orientations.get(0);
         userData.setUserID(id);
         // Add ID to database only if phase is study or quest
-        if (phase.equals(STUDY) || phase.equals(QUEST)) {
-            userData.createNewUserDataReference(id);
-        }
+        userData.createNewUserDataReference(id);
     }
 
     // Setup touch listener to determine the coordinates of the touch event to handle it accordingly
@@ -179,20 +157,15 @@ public class SliderAreaActivity extends AppCompatActivity {
                         Log.i("TOUCHED AT ", String.valueOf(xTouch + ", " + yTouch));
                         //Handle double click
                         if (clickTime - lastClickTime < DOUBLE_CLICK_TIME_DELTA) {
-                           // if (tasksStarted && !taskCompleted) {
-                               // handleValueSelection(); // no differentiation between select and continue
+                            // if (tasksStarted && !taskCompleted) {
+                            // handleValueSelection(); // no differentiation between select and continue
 
-                             if (tasksStarted && !taskCompleted) {
-                                 // Only allow to proceed to next task if user has provided input (attempt to avoid skipping of questions)
-                                 if ((phase.equals(STUDY) || phase.equals(QUEST)) && userData.getLastMeasurement().getMeasurementPairs().size() > 0){
-                                     handleValueSelection();
-                                     continueWithNextTask();
-                                 }
-                                 if (!phase.equals(STUDY) && !phase.equals(QUEST)) {
-                                     handleValueSelection();
-                                     continueWithNextTask();
-                                 }
-
+                            if (tasksStarted && !taskCompleted) {
+                                // Only allow to proceed to next task if user has provided input (attempt to avoid skipping of questions)
+                                if (userData.getLastMeasurement().getMeasurementPairs().size() > 0) {
+                                    handleValueSelection();
+                                    continueWithNextTask();
+                                }
                             } else if (!tasksStarted) {
                                 startFirstTask();
                             }
@@ -201,7 +174,7 @@ public class SliderAreaActivity extends AppCompatActivity {
                         break;
                     case MotionEvent.ACTION_MOVE:
                         if (isLongClick) {
-                            tactileArea.handleTouchEvent(xTouch, yTouch, userData, startTask, phase, tasksStarted);
+                            tactileArea.handleTouchEvent(xTouch, yTouch, userData, startTask, tasksStarted);
                         }
                         break;
                     case MotionEvent.ACTION_UP:
@@ -217,42 +190,19 @@ public class SliderAreaActivity extends AppCompatActivity {
 
     // Initialize first task
     private void startFirstTask() {
-        if (phase.equals(STUDY) || phase.equals(QUEST)) {
-
-            doubleTapSound.start();
-            readAloudTarget();
-            tasksStarted = true;
-            // In trial task, return to selection screen
-            if (phase.equals(STUDY)){
-                userData.addMeasurement(userData.getCurrentTargetList().get(userData.getCurrentTargetIndex()));
-            } else if (phase.equals(QUEST)){
-                userData.addMeasurement(userData.getCurrentQuestionList().get(userData.getCurrentQuestionIndex()));
-            }
-
-        } else {
-            successSound.start();
-
-            final String[] userId = userData.getUserId().split("_" + feedbackModes.get(currentVariant));
-            userData.setUserID(userId[0]);
-            finish();
-        }
-
+        doubleTapSound.start();
+        readAloudTarget();
+        tasksStarted = true;
+        userData.addMeasurement(userData.getCurrentTargetList().get(userData.getCurrentTargetIndex()));
     }
 
     // Generate speech output to read aloud task
     private void readAloudTarget() {
 
         String toSpeak;
-        if (phase.equals(STUDY)) {
-            int target = (int) Math.round(userData.getCurrentTargetList().get(userData.getCurrentTargetIndex()));
-            toSpeak = "Bitte wählen Sie die " + target + ".";
-            coorinatesView.setText(userData.getUserId() + ":      Target " + userData.getCurrentTargetList().get(userData.getCurrentTargetIndex()));
-        } else {
-            String question = userData.getCurrentQuestionList().get(userData.getCurrentQuestionIndex());
-            toSpeak = question;
-            coorinatesView.setText(userData.getUserId() + ":      Question " + userData.getCurrentQuestionList().get(userData.getCurrentQuestionIndex()));
-        }
-
+        int target = (int) Math.round(userData.getCurrentTargetList().get(userData.getCurrentTargetIndex()));
+        toSpeak = "Bitte wählen Sie die " + target + ".";
+        coorinatesView.setText(userData.getUserId() + ":      Target " + userData.getCurrentTargetList().get(userData.getCurrentTargetIndex()));
         final int interval = 500; // half a second
         Handler handler = new Handler();
         Runnable runnable = new Runnable() {
@@ -273,63 +223,38 @@ public class SliderAreaActivity extends AppCompatActivity {
     // Accesses the next target within the userData target list and starts speech output
     @RequiresApi(api = Build.VERSION_CODES.N)
     private void continueWithNextTask() {
-            // Handle study phase
-            if (phase.equals(STUDY)) {
-                if (userData.getCurrentTargetIndex() + 1 < userData.getCurrentTargetList().size()) {
-                    userData.incrementCurrentTargetIndex();
-                    userData.addMeasurement(userData.getCurrentTargetList().get(userData.getCurrentTargetIndex()));
-                    taskCompleted = false;
-                    //doubleTapSound.start();
-                    readAloudTarget();
+        // Handle study phase
+            if (userData.getCurrentTargetIndex() + 1 < userData.getCurrentTargetList().size()) {
+                userData.incrementCurrentTargetIndex();
+                userData.addMeasurement(userData.getCurrentTargetList().get(userData.getCurrentTargetIndex()));
+                taskCompleted = false;
+                //doubleTapSound.start();
+                readAloudTarget();
+            } else {
+                successSound.start();
+                if (feedbackModes.size() > currentVariant + 1) {
+                    initializeNextVariant();
                 } else {
-                    successSound.start();
-                    if (feedbackModes.size() > currentVariant + 1 ){
-                        initializeNextVariant();
-
-                    } else {
-                        final String[] userId = userData.getUserId().split("_" + feedbackModes.get(currentVariant));
-                        userData.setUserID(userId[0]);
-                        finish();
-                    }
-
+                    final String[] userId = userData.getUserId().split("_" + feedbackModes.get(currentVariant));
+                    userData.setUserID(userId[0]);
+                    finish();
                 }
-
-                // Handle questionnaire phase
-            } else if (phase.equals(QUEST)){
-                if (userData.getCurrentQuestionIndex() + 1 < userData.getCurrentQuestionList().size()) {
-                    userData.incrementCurrentQuestionIndex();
-                    userData.addMeasurement(userData.getCurrentQuestionList().get(userData.getCurrentQuestionIndex()));
-                    taskCompleted = false;
-                    doubleTapSound.start();
-                    readAloudTarget();
-                } else {
-                    successSound.start();
-                    if (feedbackModes.size() > currentVariant + 1 ){
-                        initializeNextVariant();
-                    } else {
-                        final String[] userId = userData.getUserId().split("_" + feedbackModes.get(currentVariant));
-                        userData.setUserID(userId[0]);
-                        finish();
-                    }
-                }
-        }
+            }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     private void initializeNextVariant() {
         final String[] userId = userData.getUserId().split("_" + feedbackModes.get(currentVariant));
-        currentVariant = currentVariant +1;
+        currentVariant = currentVariant + 1;
         // set userId
-        String id = userId[0] + "_" + feedbackModes.get(currentVariant) + "_" + lengths.get(currentVariant) + "_" + orientations.get(currentVariant) + "_" + phase;
+        String id = userId[0] + "_" + feedbackModes.get(currentVariant) + "_" + orientations.get(currentVariant);
         userData.setUserID(id);
         userData.createNewUserDataReference(id);
         // reset indices;
         userData.resetCurrentTargetIndex();
-        userData.resetCurrentQuestionIndex();
-        userData.setTargets(userData.createRandomizedTargetList(10));
-        userData.setQuestions(userData.createRandomizedQuestionList());
+        userData.setTargets(userData.createRandomizedTargetList(8)); // TODO decide
         // setup tactile area according to new variant
-        tactileArea.changeLayout(feedbackModes.get(currentVariant), lengths.get(currentVariant), orientations.get(currentVariant));
+        tactileArea.changeLayout(feedbackModes.get(currentVariant), orientations.get(currentVariant));
 
         // reset variables
         tasksStarted = false;
@@ -349,7 +274,7 @@ public class SliderAreaActivity extends AppCompatActivity {
                     isLongClick = true;
                     startTask = System.currentTimeMillis();
                     // Check for finger position and provide feedback
-                    tactileArea.handleTouchEvent(xTouch, yTouch, userData, startTask, phase, tasksStarted);
+                    tactileArea.handleTouchEvent(xTouch, yTouch, userData, startTask, tasksStarted);
 
                 }
                 return false;
@@ -365,10 +290,10 @@ public class SliderAreaActivity extends AppCompatActivity {
     private void handleValueSelection() {
 
         // Set input value
-            doubleTapSound.start();
-            taskCompleted = true;
-            startTask = 0;
-        if (userData.getLastMeasurement().getMeasurementPairs().size() > 0){
+        doubleTapSound.start();
+        taskCompleted = true;
+        startTask = 0;
+        if (userData.getLastMeasurement().getMeasurementPairs().size() > 0) {
             userData.getLastMeasurement().setInput(userData.getLastMeasurement().getMeasurementPairs().get(userData.getLastMeasurement().getMeasurementPairs().size() - 1).getValue());
             // Set completion time value
             userData.getLastMeasurement().setCompletionTime((long) userData.getLastMeasurement().getMeasurementPairs().get(userData.getLastMeasurement().getMeasurementPairs().size() - 1).getTimestamp());
@@ -379,12 +304,12 @@ public class SliderAreaActivity extends AppCompatActivity {
             userData.getLastMeasurement().setCompletionTime((long) -1);
 
         }
-            userData.pushDataToDatabase();
+        userData.pushDataToDatabase();
 
     }
 
     @Override
-    public void onBackPressed () {
+    public void onBackPressed() {
 
     }
 

@@ -3,14 +3,12 @@ package com.example.tactileslider;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.media.AudioManager;
-import android.media.PlaybackParams;
 import android.media.SoundPool;
 import android.os.Build;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.view.View;
 import android.view.ViewTreeObserver;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.RequiresApi;
@@ -20,10 +18,6 @@ import java.util.Collections;
 import java.util.stream.IntStream;
 
 public class TactileArea {
-
-
-
-    private static final String SHORT = "short" ;
 
     private final UserData userData;
     View sliderView;
@@ -39,8 +33,6 @@ public class TactileArea {
     private double userInputValue = 0.0;
     private int soundId;
     private String feedbackMode;
-    private String orientation;
-    private  String phase;
 
 
     // Audio Feedback
@@ -68,10 +60,8 @@ public class TactileArea {
         sliderView = mainActivity.findViewById(R.id.sliderView);
         coorinatesView = mainActivity.findViewById(R.id.topBar);
         this.feedbackMode = feedbackMode;
-        this.orientation = orientation;
-        this.phase = phase;
         this.context = context;
-        this.userData = userData; 
+        this.userData = userData;
 
 
         // Create Soundpool object
@@ -114,10 +104,8 @@ public class TactileArea {
 
 
     @RequiresApi(api = Build.VERSION_CODES.N)
-    public void changeLayout(String mode, String length, String orientation) {
+    public void changeLayout(String mode, String orientation) {
         this.feedbackMode = mode;
-        this.length = length;
-        this.orientation = orientation;
         setUpLayout();
     }
 
@@ -125,13 +113,7 @@ public class TactileArea {
     @SuppressLint("ResourceAsColor")
     @RequiresApi(api = Build.VERSION_CODES.N)
     private void setUpLayout() {
-        if (length.equals(SHORT)){
-            sliderLength = MAX_LENGTH /2;
-        } else {
-            sliderLength = MAX_LENGTH;
-
-        }
-        sliderView.setLayoutParams(new LinearLayout.LayoutParams(sliderView.getMeasuredWidth(), sliderLength));
+        sliderLength = MAX_LENGTH;
         coorinatesView.setText(userData.getUserId());
         heightTopBar = coorinatesView.getMeasuredHeight();
         likertCoords = calculateLikertYCords(heightTopBar, this.sliderLength);
@@ -173,13 +155,13 @@ public class TactileArea {
     private ArrayList<Integer> createSoundList() {
         ArrayList<Integer> sounds = new ArrayList<Integer>();
         Collections.addAll(sounds,
-               soundPool.load(context, R.raw.c5, 1),
-               soundPool.load(context, R.raw.g4, 1),
-               soundPool.load(context, R.raw.e4, 1),
-               soundPool.load(context, R.raw.c4, 1),
-               soundPool.load(context, R.raw.e4, 1),
-               soundPool.load(context, R.raw.g4, 1),
-               soundPool.load(context, R.raw.c5, 1)
+                soundPool.load(context, R.raw.c5, 1),
+                soundPool.load(context, R.raw.g4, 1),
+                soundPool.load(context, R.raw.e4, 1),
+                soundPool.load(context, R.raw.c4, 1),
+                soundPool.load(context, R.raw.e4, 1),
+                soundPool.load(context, R.raw.g4, 1),
+                soundPool.load(context, R.raw.c5, 1)
         );
         return sounds;
     }
@@ -199,12 +181,12 @@ public class TactileArea {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
-    public void handleTouchEvent(int xTouch, int yTouch, UserData userData, long taskStart, String phase, Boolean taskStarted) {
+    public void handleTouchEvent(int xTouch, int yTouch, UserData userData, long taskStart, Boolean taskStarted) {
 
         userInputValue = calculateLikertValue(yTouch);
         boolean valueIsMin = userInputValue >= 0.0;
-        boolean valueIsNotMax = userInputValue <=8.0;
-        if(valueIsMin && valueIsNotMax) {
+        boolean valueIsNotMax = userInputValue <= 8.0;
+        if (valueIsMin && valueIsNotMax) {
             if (coordRanges.contains(yTouch)) {
 
                 LikertItem crossedItem = likertItems.get(getLikertIndexFromRange(yTouch));
@@ -215,17 +197,17 @@ public class TactileArea {
                 if (feedbackMode.equals(AUDIO) || feedbackMode.equals(COMBINED)) {                    // If it is the same step and the pause has passed, or it is a new step, or the first step
                     if (lastCrossedItem == null || crossedItem.getAlphaValue() == lastCrossedItem.getAlphaValue() && System.currentTimeMillis() > MIN_PAUSE_SAME_STEP + lastPlayTime || crossedItem.getAlphaValue() != lastCrossedItem.getAlphaValue()) {
                         soundPool.play(crossedItem.getSound(), 0.5F, 0.5F, 1, 0, 1f);
-                        if (feedbackMode.equals(AUDIO)){
+                        if (feedbackMode.equals(AUDIO)) {
                             lastPlayTime = System.currentTimeMillis();
                             lastCrossedItem = crossedItem;
                         }
                     }
                 }
 
-                    // Generate tactile feedback
-                if (feedbackMode.equals(TACTILE) || feedbackMode.equals(COMBINED)){
+                // Generate tactile feedback
+                if (feedbackMode.equals(TACTILE) || feedbackMode.equals(COMBINED)) {
                     // If it is the same step and the pause has passed, or it is a new step, or the first step
-                    if(lastCrossedItem == null || crossedItem.getAlphaValue() == lastCrossedItem.getAlphaValue() && System.currentTimeMillis() > MIN_PAUSE_SAME_STEP + lastPlayTime || crossedItem.getAlphaValue() != lastCrossedItem.getAlphaValue()) {
+                    if (lastCrossedItem == null || crossedItem.getAlphaValue() == lastCrossedItem.getAlphaValue() && System.currentTimeMillis() > MIN_PAUSE_SAME_STEP + lastPlayTime || crossedItem.getAlphaValue() != lastCrossedItem.getAlphaValue()) {
                         lastCrossedItem = crossedItem;
                         // Haptic feedback that slider is activated
                         VibrationEffect effect = null;
@@ -241,15 +223,12 @@ public class TactileArea {
 
             }
 
-
             // Write measurementPair to userData
-            if ((phase.equals(STUDY) || phase.equals(QUEST)) && taskStarted) {
+            if (taskStarted) {
                 userData.getLastMeasurement().addMeasurementPair(xTouch, userInputValue, (long) System.currentTimeMillis() - taskStart);
             }
         }
     }
-
-
 
 
     private int getLikertIndexFromRange(int yTouch) {
