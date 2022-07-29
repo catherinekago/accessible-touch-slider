@@ -65,7 +65,6 @@ public class StartActivity extends AppCompatActivity {
 
         downloadButton.setOnClickListener(view -> jsonFormatter.downloadUserTestingData());
 
-        findViewById(R.id.trialTable).setVisibility(View.VISIBLE);
         findViewById(R.id.changeId).setVisibility(View.VISIBLE);
     }
 
