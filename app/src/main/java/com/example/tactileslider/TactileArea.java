@@ -30,7 +30,7 @@ public class TactileArea {
     TextView coorinatesView;
 
     private int sliderLength;
-    private static int MAX_LENGTH = 1680;
+    private static int MAX_LENGTH = 1680; // TODO find out on smartphone
     private int heightTopBar;
     private ArrayList<Integer> likertCoords = new ArrayList<Integer>();
     private int likertSpacing;
@@ -39,12 +39,9 @@ public class TactileArea {
     private double userInputValue = 0.0;
     private int soundId;
     private String feedbackMode;
-    private String length;
     private String orientation;
     private  String phase;
 
-    private final String STUDY = "study";
-    private final String QUEST = "questionnaire";
 
     // Audio Feedback
     private SoundPool soundPool;
@@ -65,13 +62,12 @@ public class TactileArea {
     private LikertItem lastCrossedItem;
 
     @RequiresApi(api = Build.VERSION_CODES.M)
-    public TactileArea(SliderAreaActivity mainActivity, UserData userData, String feedbackMode, String length, String orientation, String phase, Context context) {
+    public TactileArea(SliderAreaActivity mainActivity, UserData userData, String feedbackMode, String orientation, Context context) {
 
         this.mainActivity = mainActivity;
         sliderView = mainActivity.findViewById(R.id.sliderView);
         coorinatesView = mainActivity.findViewById(R.id.topBar);
         this.feedbackMode = feedbackMode;
-        this.length = length;
         this.orientation = orientation;
         this.phase = phase;
         this.context = context;

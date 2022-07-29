@@ -77,7 +77,7 @@ public class SliderAreaActivity extends AppCompatActivity {
         setContentView(R.layout.activity_slider_area);
 
         this.context = this;
-        tactileArea = new TactileArea(this, userData, feedbackModes.get(currentVariant), lengths.get(currentVariant), orientations.get(currentVariant), phase, context);
+        tactileArea = new TactileArea(this, userData, feedbackModes.get(currentVariant), orientations.get(currentVariant), context);
         coorinatesView = findViewById(R.id.topBar);
 
         View.OnTouchListener getCoordinates = setUpTapAndMotionListener();

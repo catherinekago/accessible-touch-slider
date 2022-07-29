@@ -36,8 +36,8 @@ public class StartActivity extends AppCompatActivity {
     private AppCompatButton downloadButton;
     private EditText idText;
 
-
     private UserData userData;
+    private LatinSquare latinSquare;
 
     private JsonFormatter jsonFormatter;
 
@@ -53,6 +53,7 @@ public class StartActivity extends AppCompatActivity {
         this.downloadButton = findViewById(R.id.buttonDownload);
         this.idText = findViewById(R.id.idText);
         this.jsonFormatter = new JsonFormatter(this);
+        this.latinSquare = new LatinSquare();
         
         // Audio Feedback 
         this.audioFeedback = new AudioFeedback();
@@ -97,7 +98,8 @@ public class StartActivity extends AppCompatActivity {
     }
 
     private void createIntent(){
-        ArrayList<String> variants = null; // TODO exchange for return latin square variants (former getTag)
+        ArrayList<String> variants = latinSquare.getVariantOrder(userData.getUserId());
+        Log.d("latinsquare", String.valueOf(variants));
         Intent intent;
         intent = new Intent(this, SliderAreaActivity.class);
         for (int i = 0; i < variants.size(); i ++){
@@ -127,9 +129,6 @@ public class StartActivity extends AppCompatActivity {
                             idText.setText(newId);
                             int times = STUDY_REPETITIONS;
                             userData = new UserData(newId,times);
-                            // TODO: create latin square order study
-                            // TODO: create latin square order for trial
-
                             firebase.collection("participants").document(newId).set(participant);
                         } else {
                             Log.d(TAG, "Error getting documents: ", task.getException());
