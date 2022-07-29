@@ -15,19 +15,17 @@ public class UserData implements Serializable {
 
     private String userID;
     private ArrayList<Measurement> measurementList = new ArrayList<Measurement>();
-    private ArrayList<Double> targetList = new ArrayList<Double>();
-    private int currentQuestionIndex = 0;
-    private int currentTargetIndex = 0;
-    // TODO define structure for all variant names so they can be accessed for setup of tactile area
+    private ArrayList<Double> targetList;
 
-    public UserData(String userID, int times){
+    private int currentTargetIndex = 0;
+
+    public UserData(String userID, int times) {
         this.userID = userID;
         this.targetList = createRandomizedTargetList(times);
         this.currentTargetIndex = 0;
-        this.currentQuestionIndex = 0;
     }
 
-    public void createNewUserDataReference(String id){
+    public void createNewUserDataReference(String id) {
         // add collection to firebase
         FirebaseFirestore firebase = FirebaseFirestore.getInstance();
         // add userID to firebase collectionList collection
@@ -37,24 +35,26 @@ public class UserData implements Serializable {
     }
 
 
-
     public void incrementCurrentTargetIndex() {
         this.currentTargetIndex++;
     }
 
-    public int getCurrentTargetIndex(){
+    public int getCurrentTargetIndex() {
         return this.currentTargetIndex;
     }
 
-    public void setTargets(ArrayList<Double> list) {this.targetList = list;}
+    public void setTargets(ArrayList<Double> list) {
+        this.targetList = list;
+    }
 
-    public void resetCurrentTargetIndex() {this.currentTargetIndex  = 0;}
+    public void resetCurrentTargetIndex() {
+        this.currentTargetIndex = 0;
+    }
 
-    public ArrayList<Double> getCurrentTargetList(){
+    public ArrayList<Double> getCurrentTargetList() {
         return this.targetList;
     }
 
-    // TODO: make sure this happens after every variant
     public ArrayList<Double> createRandomizedTargetList(int times) {
         // CAUTION: Hardcoded values for range of sliders
         final double from = 1.00;
@@ -62,8 +62,8 @@ public class UserData implements Serializable {
 
         // Fill targetlist with values
         ArrayList<Double> list = new ArrayList<Double>();
-        for (int t = 1; t <= times; t ++) {
-            for(double i = from; i <= until; i++){
+        for (int t = 1; t <= times; t++) {
+            for (double i = from; i <= until; i++) {
                 list.add(i);
             }
         }
@@ -77,18 +77,13 @@ public class UserData implements Serializable {
         this.userID = userID;
     }
 
-    public void addMeasurement(double target){
+    public void addMeasurement(double target) {
         Measurement newMeasurement = new Measurement(target);
         measurementList.add(newMeasurement);
     }
 
-    public void addMeasurement(String question){
-        Measurement newMeasurement = new Measurement(question);
-        measurementList.add(newMeasurement);
-    }
-
-    public Measurement getLastMeasurement(){
-        return measurementList.get(measurementList.size()-1);
+    public Measurement getLastMeasurement() {
+        return measurementList.get(measurementList.size() - 1);
     }
 
     public void pushDataToDatabase() {
@@ -98,14 +93,14 @@ public class UserData implements Serializable {
         Map<String, Object> measurement = new HashMap<>();
         Measurement lastMeasurement = this.getLastMeasurement();
 
-            measurement.put("target", lastMeasurement.getTarget());
-            measurement.put("error", lastMeasurement.getError());
+        measurement.put("target", lastMeasurement.getTarget());
+        measurement.put("error", lastMeasurement.getError());
 
         measurement.put("input", lastMeasurement.getInput());
         measurement.put("completionTime", lastMeasurement.getCompletionTime());
 
         ArrayList<Map> measurementPairs = new ArrayList<>();
-        for(int i=0; i < getLastMeasurement().getMeasurementPairs().size(); i++) {
+        for (int i = 0; i < getLastMeasurement().getMeasurementPairs().size(); i++) {
             Map<String, Object> measurementPair = new HashMap<>();
             measurementPair.put("xCoord", getLastMeasurement().getMeasurementPairs().get(i).getxCoord());
             measurementPair.put("value", getLastMeasurement().getMeasurementPairs().get(i).getValue());
@@ -118,7 +113,7 @@ public class UserData implements Serializable {
 
     }
 
-    public String getUserId(){
+    public String getUserId() {
         return this.userID;
     }
 
