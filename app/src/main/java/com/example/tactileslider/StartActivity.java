@@ -30,22 +30,12 @@ import java.util.Map;
 
 public class StartActivity extends AppCompatActivity {
 
-    private final String AUDIO = "audio";
-    private final String TACTILE = "tactile";
-    private final String COMBINED = "combined";
-    private final String LONG = "long";
-    private final String SHORT = "short";
-    private final String HORIZONTAL = "horizontal";
-    private final String VERTICAL = "vertical";
+    private final int STUDY_REPETITIONS = 8; // TODO: decide
 
-    private final String TRIAL = "trial";
-    private final String STUDY = "study";
-    private final int STUDY_REPETITIONS = 10; // TODO: set to 10
-    private final String QUEST = "questionnaire";
 
     private AppCompatButton downloadButton;
     private EditText idText;
-    private Button confirmIdButton;
+
 
     private UserData userData;
 
@@ -70,25 +60,8 @@ public class StartActivity extends AppCompatActivity {
 
         initializeUserDataObject();
 
-        // Setup event listeners
-        findViewById(R.id.trial_audio_long_horizontal).setOnClickListener(view -> switchToSliderTrial(findViewById(R.id.trial_audio_long_horizontal), AUDIO, LONG, HORIZONTAL));
-        findViewById(R.id.trial_audio_long_vertical).setOnClickListener(view -> switchToSliderTrial(findViewById(R.id.trial_audio_long_vertical), AUDIO, LONG, VERTICAL));
-        findViewById(R.id.trial_audio_short_horizontal).setOnClickListener(view -> switchToSliderTrial(findViewById(R.id.trial_audio_short_horizontal), AUDIO, SHORT, HORIZONTAL));
-        findViewById(R.id.trial_audio_short_vertical).setOnClickListener(view -> switchToSliderTrial(findViewById(R.id.trial_audio_short_vertical), AUDIO, SHORT, VERTICAL));
-
-        findViewById(R.id.trial_tactile_long_horizontal).setOnClickListener(view -> switchToSliderTrial(findViewById(R.id.trial_tactile_long_horizontal), TACTILE, LONG, HORIZONTAL));
-        findViewById(R.id.trial_tactile_long_vertical).setOnClickListener(view -> switchToSliderTrial(findViewById(R.id.trial_tactile_long_vertical), TACTILE, LONG, VERTICAL));
-        findViewById(R.id.trial_tactile_short_horizontal).setOnClickListener(view -> switchToSliderTrial(findViewById(R.id.trial_tactile_short_horizontal), TACTILE, SHORT, HORIZONTAL));
-        findViewById(R.id.trial_tactile_short_vertical).setOnClickListener(view -> switchToSliderTrial(findViewById(R.id.trial_tactile_short_vertical), TACTILE, SHORT, VERTICAL));
-
-        findViewById(R.id.trial_combined_long_horizontal).setOnClickListener(view -> switchToSliderTrial(findViewById(R.id.trial_combined_long_horizontal), COMBINED, LONG, HORIZONTAL));
-        findViewById(R.id.trial_combined_long_vertical).setOnClickListener(view -> switchToSliderTrial(findViewById(R.id.trial_combined_long_vertical), COMBINED, LONG, VERTICAL));
-        findViewById(R.id.trial_combined_short_horizontal).setOnClickListener(view -> switchToSliderTrial(findViewById(R.id.trial_combined_short_horizontal), COMBINED, SHORT, HORIZONTAL));
-        findViewById(R.id.trial_combined_short_vertical).setOnClickListener(view -> switchToSliderTrial(findViewById(R.id.trial_combined_short_vertical), COMBINED, SHORT, VERTICAL));
-
         findViewById(R.id.changeId).setOnClickListener(view -> changeId());
-        findViewById(R.id.startQuestionnaires).setOnClickListener(view -> startQuestionnairePhase());
-        findViewById(R.id.startStudy).setOnClickListener(view -> startStudyPhase());
+        findViewById(R.id.startStudy).setOnClickListener(view -> createIntent());
 
         downloadButton.setOnClickListener(view -> jsonFormatter.downloadUserTestingData());
 
@@ -124,80 +97,19 @@ public class StartActivity extends AppCompatActivity {
                 });
     }
 
-    private Intent createIntent(String phase){
-        ArrayList<String> variants = getSelectedVariants();
+    private void createIntent(){
+        ArrayList<String> variants = null; // TODO exchange for return latin square variants (former getTag)
         Intent intent;
         intent = new Intent(this, SliderAreaActivity.class);
-
-        intent.putExtra("feedbackMode_1", variants.get(0).split(" ")[0]);
-        intent.putExtra("length_1", variants.get(0).split(" ")[1]);
-        intent.putExtra("orientation_1", variants.get(0).split(" ")[2]);
-
-        intent.putExtra("feedbackMode_2", variants.get(1).split(" ")[0]);
-        intent.putExtra("length_2", variants.get(1).split(" ")[1]);
-        intent.putExtra("orientation_2", variants.get(1).split(" ")[2]);
-
-        if (variants.size() == 3){
-            intent.putExtra("feedbackMode_3", variants.get(2).split(" ")[0]);
-            intent.putExtra("length_3", variants.get(2).split(" ")[1]);
-            intent.putExtra("orientation_3", variants.get(2).split(" ")[2]);
+        for (int i = 0; i < variants.size(); i ++){
+            int tagNum = i + 1;
+            intent.putExtra("feedbackMode_" + tagNum, variants.get(i).split(" ")[0]);
+            intent.putExtra("orientation_" + tagNum, variants.get(i).split(" ")[1]);
         }
-
-        intent.putExtra("phase", phase);
         intent.putExtra("userData", userData);
-        return intent;
-    }
-
-    // Initialize questionnaire phase
-    private void startQuestionnairePhase() {
-        Intent intent = createIntent(QUEST);
         startActivity(intent);
     }
 
-    // Initialize study phase
-    private void startStudyPhase() {
-        Intent intent = createIntent(STUDY);
-        startActivity(intent);
-    }
-
-    // Determine which variants have been selected
-    private ArrayList<String> getSelectedVariants(){
-        ArrayList<String> variants = new ArrayList<>();
-        TableLayout table = (TableLayout) findViewById(R.id.trialTable);
-        int count = table.getChildCount();
-        for (int i = 0; i < count; i++) {
-            TableRow row = (TableRow) table.getChildAt(i);
-            CheckBox first = (CheckBox) row.getChildAt(0);
-            CheckBox second = (CheckBox) row.getChildAt(3);
-            if (first.isChecked()){
-                variants.add((String) first.getTag());
-            }
-            if (second.isChecked()){
-                variants.add((String) second.getTag());
-            }
-        }
-        // Randomize variants
-        Collections.shuffle(variants);
-
-        return variants;
-    }
-
-    // Switch to slider variant of the given parameters for trial phase
-    private void switchToSliderTrial(Button button, String mode, String length, String orientation){
-
-        // change color of button
-        button.setBackgroundColor(getResources().getColor(R.color.grape_pale));
-        audioFeedback.getSoundPool().play(soundIdDoubleTap, 0.5F, 0.5F, 1, 0, 1);
-
-        Intent intent;
-        intent = new Intent(this, SliderAreaActivity.class);
-        intent.putExtra("userData", userData);
-        intent.putExtra("feedbackMode_1", mode);
-        intent.putExtra("orientation_1", orientation);
-        intent.putExtra("length_1", length);
-        intent.putExtra("phase", TRIAL);
-        startActivity(intent);
-    }
 
     // Determine the ID of the participant according to already existing IDs
     private void initializeUserDataObject() {
@@ -216,6 +128,9 @@ public class StartActivity extends AppCompatActivity {
                             idText.setText(newId);
                             int times = STUDY_REPETITIONS;
                             userData = new UserData(newId,times);
+                            // TODO: create latin square order study
+                            // TODO: create latin square order for trial
+
                             firebase.collection("participants").document(newId).set(participant);
                         } else {
                             Log.d(TAG, "Error getting documents: ", task.getException());

@@ -19,6 +19,7 @@ public class UserData implements Serializable {
     private ArrayList<String> questionList = new ArrayList<String>();
     private int currentQuestionIndex = 0;
     private int currentTargetIndex = 0;
+    // TODO define structure for all variant names so they can be accessed for setup of tactile area
 
     public UserData(String userID, int times){
         this.userID = userID;

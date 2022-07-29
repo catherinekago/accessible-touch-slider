@@ -365,8 +365,6 @@ public class SliderAreaActivity extends AppCompatActivity {
     private void handleValueSelection() {
 
         // Set input value
-        //if (userData.getLastMeasurement().getMeasurementPairs().size() > 0){
-        // TODO test again if all 70 measures come up if double tap without moving
             doubleTapSound.start();
             taskCompleted = true;
             startTask = 0;
@@ -381,8 +379,7 @@ public class SliderAreaActivity extends AppCompatActivity {
             userData.getLastMeasurement().setCompletionTime((long) -1);
 
         }
-            userData.pushDataToDatabase(phase);
-       // }
+            userData.pushDataToDatabase();
 
     }
 

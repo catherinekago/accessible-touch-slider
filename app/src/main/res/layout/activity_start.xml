@@ -12,405 +12,58 @@
         android:id="@+id/topRow"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="24dp"
-        android:layout_weight="0.25
-"
+        android:layout_marginBottom="0dp"
         android:gravity="center"
-        app:layout_constraintBottom_toTopOf="@+id/trialTable"
+        app:layout_constraintBottom_toTopOf="@+id/startStudy"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
         <EditText
             android:id="@+id/idText"
-            android:layout_width="311dp"
+
             android:layout_height="wrap_content"
+            android:layout_width="100dp"
             android:layout_marginTop="16dp"
-            android:layout_marginBottom="60dp"
+            android:layout_weight="1"
             android:ems="10"
             android:inputType="textPersonName"
-            android:text="ID is being generated..." />
+            android:text="Generate..." />
 
         <Button
             android:id="@+id/changeId"
-            android:layout_width="300dp"
-            android:layout_height="40dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="60dp"
-            android:layout_marginLeft="200dp"
-            android:layout_weight="1"
-            android:backgroundTint="@color/grape_light"
-            android:maxWidth="300dp"
-            android:text="change"
-            android:textColor="@color/white"
-            android:visibility="visible"
-
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="parent"
-            tools:visibility="visible" />
-
-    </TableRow>
-
-    <TableLayout
-        android:id="@+id/trialTable"
-        android:layout_width="match_parent"
-        android:layout_height="500dp"
-        app:layout_constraintBottom_toTopOf="@id/changeId"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/topRow"
-        tools:ignore="NotSibling">
-
-        <TableRow
             android:layout_width="wrap_content"
-            android:layout_height="84dp"
-            android:layout_marginBottom="24dp"
-            android:layout_weight="0.25"
-            android:gravity="center">
-
-            <CheckBox
-                android:id="@+id/check_audio_long_horizontal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:tag="audio long horizontal" />
-
-            <Button
-                android:id="@+id/trial_audio_long_horizontal"
-                android:layout_width="wrap_content"
-                android:layout_height="60dp"
-                android:layout_marginLeft="24dp"
-                android:layout_marginTop="0dp"
-                android:layout_marginRight="24dp"
-                android:layout_weight="1"
-                android:backgroundTint="@color/white"
-                android:text="audio long horizontal"
-                android:textColor="@color/black"
-                android:visibility="visible"
-                tools:visibility="visible" />
-
-            <Button
-                android:id="@+id/trial_audio_long_vertical"
-                android:layout_width="wrap_content"
-                android:layout_height="60dp"
-                android:layout_marginLeft="24dp"
-                android:layout_marginTop="0dp"
-                android:layout_marginRight="24dp"
-                android:layout_weight="1"
-                android:backgroundTint="@color/white"
-                android:text="audio long vertical"
-                android:textColor="@color/black"
-                android:visibility="visible"
-                tools:visibility="visible" />
-
-            <CheckBox
-                android:id="@+id/check_audio_long_vertical"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:tag="audio long vertical"/>
-
-        </TableRow>
-
-        <TableRow
-            android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginBottom="24dp"
-            android:layout_weight="0.25"
-            android:gravity="center">
-
-            <CheckBox
-                android:id="@+id/check_tactile_long_horizontal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:tag="tactile long horizontal"/>
-
-            <Button
-                android:id="@+id/trial_tactile_long_horizontal"
-                android:layout_width="wrap_content"
-                android:layout_height="60dp"
-                android:layout_marginLeft="24dp"
-                android:layout_marginTop="0dp"
-                android:layout_marginRight="24dp"
-                android:layout_weight="1"
-                android:backgroundTint="@color/white"
-                android:text="tactile long horizontal"
-                android:textColor="@color/black"
-                android:visibility="visible"
-                tools:visibility="visible" />
-
-            <Button
-                android:id="@+id/trial_tactile_long_vertical"
-                android:layout_width="wrap_content"
-                android:layout_height="60dp"
-                android:layout_marginLeft="24dp"
-                android:layout_marginTop="0dp"
-                android:layout_marginRight="24dp"
-                android:layout_weight="1"
-                android:backgroundTint="@color/white"
-                android:text="tactile long vertical"
-                android:textColor="@color/black"
-                android:visibility="visible"
-                tools:visibility="visible" />
-
-            <CheckBox
-                android:tag="tactile long vertical"
-                android:id="@+id/tactile_long_vertical"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-
-        </TableRow>
-
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginBottom="24dp"
-            android:layout_weight="0.25"
-            android:gravity="center">
-
-            <CheckBox
-                android:id="@+id/check_combined_long_horizontal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:tag="combined long horizontal"/>
-
-            <Button
-                android:id="@+id/trial_combined_long_horizontal"
-                android:layout_width="wrap_content"
-                android:layout_height="60dp"
-                android:layout_marginLeft="24dp"
-                android:layout_marginTop="0dp"
-                android:layout_marginRight="24dp"
-                android:layout_weight="1"
-                android:backgroundTint="@color/white"
-                android:text="combined long horizontal"
-                android:textColor="@color/black"
-                android:visibility="visible"
-                tools:visibility="visible" />
-
-            <Button
-                android:id="@+id/trial_combined_long_vertical"
-                android:layout_width="wrap_content"
-                android:layout_height="60dp"
-                android:layout_marginLeft="24dp"
-                android:layout_marginTop="0dp"
-                android:layout_marginRight="24dp"
-                android:layout_weight="1"
-                android:backgroundTint="@color/white"
-                android:text="combined long vertical"
-                android:textColor="@color/black"
-                android:visibility="visible"
-                tools:visibility="visible" />
-
-            <CheckBox
-                android:id="@+id/combined_long_vertical"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:tag="combined long vertical"/>
-
-        </TableRow>
-
-
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginBottom="24dp"
-            android:layout_weight="0.25"
-            android:gravity="center|center_horizontal|center_vertical">
-
-            <CheckBox
-                android:id="@+id/check_audio_short_horizontal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:tag="audio short horizontal" />
-
-            <Button
-                android:id="@+id/trial_audio_short_horizontal"
-                android:layout_width="wrap_content"
-                android:layout_height="60dp"
-                android:layout_marginLeft="24dp"
-                android:layout_marginTop="0dp"
-                android:layout_marginRight="24dp"
-                android:layout_weight="1"
-                android:backgroundTint="@color/white"
-                android:text="audio short horizontal"
-                android:textColor="@color/black"
-                android:visibility="visible"
-                tools:visibility="visible" />
-
-            <Button
-                android:id="@+id/trial_audio_short_vertical"
-                android:layout_width="wrap_content"
-                android:layout_height="60dp"
-                android:layout_marginLeft="24dp"
-                android:layout_marginTop="0dp"
-                android:layout_marginRight="24dp"
-                android:layout_weight="1"
-                android:backgroundTint="@color/white"
-                android:text="audio short vertical"
-                android:textColor="@color/black"
-                android:visibility="visible"
-                tools:visibility="visible" />
-
-            <CheckBox
-                android:id="@+id/check_audio_short_vertical"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:tag="audio short vertical"/>
-
-        </TableRow>
-
-
-
-
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginBottom="24dp"
-            android:layout_weight="0.25"
-            android:gravity="center">
-
-            <CheckBox
-                android:id="@+id/check_tactile_short_horizontal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:tag="tactile short horizontal"/>
-
-            <Button
-                android:id="@+id/trial_tactile_short_horizontal"
-                android:layout_width="wrap_content"
-                android:layout_height="60dp"
-                android:layout_marginLeft="24dp"
-                android:layout_marginTop="0dp"
-                android:layout_marginRight="24dp"
-                android:layout_weight="1"
-                android:backgroundTint="@color/white"
-                android:text="tactile short horizontal"
-                android:textColor="@color/black"
-                android:visibility="visible"
-                tools:visibility="visible" />
-
-            <Button
-                android:id="@+id/trial_tactile_short_vertical"
-                android:layout_width="wrap_content"
-                android:layout_height="60dp"
-                android:layout_marginLeft="24dp"
-                android:layout_marginTop="0dp"
-                android:layout_marginRight="24dp"
-                android:layout_weight="1"
-                android:backgroundTint="@color/white"
-                android:text="tactile short vertical"
-                android:textColor="@color/black"
-                android:visibility="visible"
-                tools:visibility="visible" />
-
-            <CheckBox
-                android:id="@+id/tactile_short_vertical"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:tag="tactile short vertical"/>
-
-        </TableRow>
-
-
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="0.25
-"
-            android:gravity="center">
-
-            <CheckBox
-                android:id="@+id/check_combined_short_horizontal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:tag="combined short horizontal"/>
-
-            <Button
-                android:id="@+id/trial_combined_short_horizontal"
-                android:layout_width="wrap_content"
-                android:layout_height="60dp"
-                android:layout_marginLeft="24dp"
-                android:layout_marginTop="0dp"
-                android:layout_marginRight="24dp"
-                android:layout_weight="1"
-                android:backgroundTint="@color/white"
-                android:text="combined short horizontal"
-                android:textColor="@color/black"
-                android:visibility="visible"
-                tools:visibility="visible" />
-
-            <Button
-                android:id="@+id/trial_combined_short_vertical"
-                android:layout_width="wrap_content"
-                android:layout_height="60dp"
-                android:layout_marginLeft="24dp"
-                android:layout_marginTop="0dp"
-                android:layout_marginRight="24dp"
-                android:layout_weight="1"
-                android:backgroundTint="@color/white"
-                android:text="combined short vertical"
-                android:textColor="@color/black"
-                android:visibility="visible"
-                tools:visibility="visible" />
-
-            <CheckBox
-                android:id="@+id/combined_short_vertical"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:tag="combined short vertical"/>
-
-        </TableRow>
-
-    </TableLayout>
-
-    <TableRow
-        android:id="@+id/row"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:layout_marginBottom="24dp"
-        android:layout_weight="0.25
-"
-        android:gravity="center"
-        app:layout_constraintBottom_toTopOf="@+id/buttonDownload"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/trialTable">
-
-        <Button
-            android:id="@+id/startStudy"
-            android:layout_width="300dp"
-            android:layout_height="80dp"
+            android:layout_marginBottom="0dp"
             android:layout_weight="1"
-            android:backgroundTint="@color/grape_light"
-            android:layout_marginRight="24dp"
-            android:text="Start Selection Tasks"
-            android:textColor="@color/white"
+            android:backgroundTint="@color/grape_pale"
+            android:text="change"
             android:visibility="visible"
-
+            android:textColor="@color/grape_dark"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="parent"
-            tools:visibility="visible" />
-
-        <Button
-            android:id="@+id/startQuestionnaires"
-            android:layout_width="300dp"
-            android:layout_height="80dp"
-            android:layout_weight="1"
-            android:backgroundTint="@color/grape_dark"
-            android:layout_marginLeft="24dp"
-            android:text="Start Questionnaire Tasks"
-            android:textColor="@color/white"
-            android:visibility="visible"
-            app:layout_constraintBottom_toBottomOf="@id/changeId"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="parent"
-
             tools:visibility="visible" />
 
     </TableRow>
+
+
+    <Button
+        android:id="@+id/startStudy"
+        android:layout_width="match_parent"
+        android:layout_height="160dp"
+        android:layout_marginTop="160dp"
+        android:layout_weight="1"
+        android:backgroundTint="@color/grape_light"
+        android:text="Start Selection Tasks"
+        android:textColor="@color/white"
+        android:visibility="visible"
+        app:layout_constraintEnd_toEndOf="@id/buttonDownload"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/topRow"
+        tools:visibility="visible" />
+
+
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/buttonDownload"
@@ -419,11 +72,11 @@
         android:layout_marginTop="24dp"
         android:text="Download User Testing Data"
         android:textColor="@color/grape_dark"
+        android:backgroundTint="@color/grape_pale"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/row"
         app:layout_constraintVertical_bias="1.0"
         tools:visibility="visible" />
 
