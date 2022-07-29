@@ -16,7 +16,6 @@ public class UserData implements Serializable {
     private String userID;
     private ArrayList<Measurement> measurementList = new ArrayList<Measurement>();
     private ArrayList<Double> targetList = new ArrayList<Double>();
-    private ArrayList<String> questionList = new ArrayList<String>();
     private int currentQuestionIndex = 0;
     private int currentTargetIndex = 0;
     // TODO define structure for all variant names so they can be accessed for setup of tactile area
@@ -24,7 +23,6 @@ public class UserData implements Serializable {
     public UserData(String userID, int times){
         this.userID = userID;
         this.targetList = createRandomizedTargetList(times);
-        this.questionList = createRandomizedQuestionList();
         this.currentTargetIndex = 0;
         this.currentQuestionIndex = 0;
     }
@@ -38,17 +36,7 @@ public class UserData implements Serializable {
         firebase.collection("userDataCollectionNames").document(id).set(userData);
     }
 
-    public ArrayList<String> createRandomizedQuestionList() {
 
-        ArrayList<String> list = new ArrayList<String>();
-        // TODO: add questions for questionnaire part here;
-        list.add("Wie fühlen Sie sich heute?");
-        list.add("Wie hungrig sind Sie?");
-        list.add("Wie müde sind Sie?");
-        // Randomize questionList
-        Collections.shuffle(list);
-        return list;
-    }
 
     public void incrementCurrentTargetIndex() {
         this.currentTargetIndex++;
@@ -58,24 +46,15 @@ public class UserData implements Serializable {
         return this.currentTargetIndex;
     }
 
-    public void incrementCurrentQuestionIndex() {
-        this.currentQuestionIndex++;
-    }
-
-    public void setQuestions(ArrayList<String> list) {this.questionList = list;}
     public void setTargets(ArrayList<Double> list) {this.targetList = list;}
 
-    public int getCurrentQuestionIndex(){
-        return this.currentQuestionIndex;
-    }
-
     public void resetCurrentTargetIndex() {this.currentTargetIndex  = 0;}
-    public void resetCurrentQuestionIndex() {this.currentQuestionIndex  = 0;}
 
     public ArrayList<Double> getCurrentTargetList(){
         return this.targetList;
     }
 
+    // TODO: make sure this happens after every variant
     public ArrayList<Double> createRandomizedTargetList(int times) {
         // CAUTION: Hardcoded values for range of sliders
         final double from = 1.00;
@@ -112,19 +91,16 @@ public class UserData implements Serializable {
         return measurementList.get(measurementList.size()-1);
     }
 
-    public void pushDataToDatabase(String phase) {
+    public void pushDataToDatabase() {
         FirebaseFirestore firebase = FirebaseFirestore.getInstance();
         CollectionReference collectionRef = firebase.collection(userID);
 
         Map<String, Object> measurement = new HashMap<>();
         Measurement lastMeasurement = this.getLastMeasurement();
 
-        if (phase.equals("study")){
             measurement.put("target", lastMeasurement.getTarget());
             measurement.put("error", lastMeasurement.getError());
-        } else if (phase.equals("questionnaire")){
-            measurement.put("question", lastMeasurement.getQuestion());
-        }
+
         measurement.put("input", lastMeasurement.getInput());
         measurement.put("completionTime", lastMeasurement.getCompletionTime());
 
@@ -137,11 +113,8 @@ public class UserData implements Serializable {
             measurementPairs.add(measurementPair);
         }
         measurement.put("measurementPairs", measurementPairs);
-        if (phase.equals("study")){
-            collectionRef.document("task_" + currentTargetIndex).set(measurement);
-        } else if (phase.equals("questionnaire")){
-            collectionRef.document("task_" + currentQuestionIndex).set(measurement);
-        }
+        collectionRef.document("task_" + currentTargetIndex).set(measurement);
+
 
     }
 
@@ -149,7 +122,4 @@ public class UserData implements Serializable {
         return this.userID;
     }
 
-    public ArrayList<String> getCurrentQuestionList() {
-        return this.questionList;
-    }
 }
