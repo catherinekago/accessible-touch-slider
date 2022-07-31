@@ -30,8 +30,7 @@ import java.util.Map;
 
 public class StartActivity extends AppCompatActivity {
 
-    private final int STUDY_REPETITIONS = 8; // TODO: decide
-
+    private final int STUDY_REPETITIONS = R.string.task_repetitions;
 
     private AppCompatButton downloadButton;
     private EditText idText;

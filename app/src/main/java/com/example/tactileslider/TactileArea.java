@@ -62,7 +62,7 @@ public class TactileArea {
         this.feedbackMode = feedbackMode;
         this.context = context;
         this.userData = userData;
-
+        coorinatesView.setText(sliderView.getHeight() +  "dp");
 
         // Create Soundpool object
         int maxStreams = 1;
@@ -191,8 +191,6 @@ public class TactileArea {
 
                 LikertItem crossedItem = likertItems.get(getLikertIndexFromRange(yTouch));
                 sliderView.getBackground().setAlpha(crossedItem.getAlphaValue());
-                //coorinatesView.setText(COORD_PREFIX + userInputValue);
-
                 // Generate audio feedback
                 if (feedbackMode.equals(AUDIO) || feedbackMode.equals(COMBINED)) {                    // If it is the same step and the pause has passed, or it is a new step, or the first step
                     if (lastCrossedItem == null || crossedItem.getAlphaValue() == lastCrossedItem.getAlphaValue() && System.currentTimeMillis() > MIN_PAUSE_SAME_STEP + lastPlayTime || crossedItem.getAlphaValue() != lastCrossedItem.getAlphaValue()) {
