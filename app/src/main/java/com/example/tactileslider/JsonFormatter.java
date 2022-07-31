@@ -23,7 +23,6 @@ import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-// TODO cleanup
 public class JsonFormatter {
     private final Context context;
     private ArrayList<String> dataList;

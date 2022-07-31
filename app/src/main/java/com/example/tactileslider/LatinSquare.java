@@ -11,8 +11,6 @@ public class LatinSquare {
             "tactile_vertical", "combined_horizontal", "combined_vertical"));
 
     public LatinSquare() {
-        // Define all existing variants
-
         // Setup LatinSquareValues
         initializeLatinSquareMap();
     }
@@ -43,6 +41,12 @@ public class LatinSquare {
         latinSquareMap.put("P_10", p4);
         latinSquareMap.put("P_11", p5);
         latinSquareMap.put("P_12", p6);
+        latinSquareMap.put("P_13", p1);
+        latinSquareMap.put("P_14", p2);
+        latinSquareMap.put("P_15", p3);
+        latinSquareMap.put("P_16", p4);
+        latinSquareMap.put("P_17", p5);
+        latinSquareMap.put("P_18", p6);
     }
 
     public ArrayList<String> getVariantOrder (String id) {
