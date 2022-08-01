@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Context;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.media.SoundPool;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -56,9 +57,10 @@ public class SliderAreaActivity extends AppCompatActivity {
     ArrayList<String> orientations;
 
     int currentVariant = 0;
-    private MediaPlayer doubleTapSound;
-    private MediaPlayer successSound;
-    private MediaPlayer longClickSound;
+
+    private SoundPool soundPool;
+    private int doubleTapSound;
+    private int successSound;
     private TextView coorinatesView;
 
 
@@ -84,18 +86,20 @@ public class SliderAreaActivity extends AppCompatActivity {
         // Setup vibration
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
+
+        // Create Soundpool object
+        int maxStreams = 1;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            soundPool = new SoundPool.Builder()
+                    .setMaxStreams(maxStreams)
+                    .build();
+        } else {
+            soundPool = new SoundPool(maxStreams, AudioManager.STREAM_MUSIC, 0);
+        }
+
         // Setup sounds
-        doubleTapSound = MediaPlayer.create(context, R.raw.doubletap);
-        doubleTapSound.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        doubleTapSound.setVolume(0.25F, 0.25F);
-
-        successSound = MediaPlayer.create(context, R.raw.completion_sound);
-        successSound.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        successSound.setVolume(0.25F, 0.25F);
-
-        longClickSound = MediaPlayer.create(context, R.raw.longclick);
-        longClickSound.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        longClickSound.setVolume(0.25F, 0.25F);
+        doubleTapSound = soundPool.load(context, R.raw.doubletap, 1);
+        successSound = soundPool.load(context, R.raw.completion_sound, 1);
 
 
         // Setup tts component
@@ -106,6 +110,7 @@ public class SliderAreaActivity extends AppCompatActivity {
         });
         Locale german = new Locale("de", "DE");
         ttsObject.setLanguage(german);
+
 
         // add first measurement
         userData.addMeasurement(userData.getCurrentTargetList().get(userData.getCurrentTargetIndex()));
@@ -190,7 +195,7 @@ public class SliderAreaActivity extends AppCompatActivity {
 
     // Initialize first task
     private void startFirstTask() {
-        doubleTapSound.start();
+        soundPool.play(doubleTapSound, 0.15F, 0.15F, 1, 0, 1f);
         readAloudTarget();
         tasksStarted = true;
         userData.addMeasurement(userData.getCurrentTargetList().get(userData.getCurrentTargetIndex()));
@@ -199,20 +204,18 @@ public class SliderAreaActivity extends AppCompatActivity {
     // Generate speech output to read aloud task
     private void readAloudTarget() {
 
-        String toSpeak;
         int target = (int) Math.round(userData.getCurrentTargetList().get(userData.getCurrentTargetIndex()));
-        toSpeak = "Bitte wählen Sie die " + target + ".";
         coorinatesView.setText(userData.getUserId() + ":      Target " + userData.getCurrentTargetList().get(userData.getCurrentTargetIndex()));
-        final int interval = 500; // half a second
+        final int interval = 250; // quarter second
         Handler handler = new Handler();
         Runnable runnable = new Runnable() {
 
 
             public void run() {
                 HashMap<String, String> params = new HashMap<String, String>();
-                params.put(TextToSpeech.Engine.KEY_PARAM_VOLUME, "0.15");
-                ttsObject.setSpeechRate(1.3F);
-                ttsObject.speak(toSpeak, TextToSpeech.QUEUE_FLUSH, params);
+                params.put(TextToSpeech.Engine.KEY_PARAM_VOLUME, "0.25");
+                ttsObject.setSpeechRate(2.25F);
+                ttsObject.speak(String.valueOf(target), TextToSpeech.QUEUE_FLUSH, params);
             }
         };
         handler.postAtTime(runnable, System.currentTimeMillis() + interval);
@@ -223,15 +226,13 @@ public class SliderAreaActivity extends AppCompatActivity {
     // Accesses the next target within the userData target list and starts speech output
     @RequiresApi(api = Build.VERSION_CODES.N)
     private void continueWithNextTask() {
-        // Handle study phase
             if (userData.getCurrentTargetIndex() + 1 < userData.getCurrentTargetList().size()) {
                 userData.incrementCurrentTargetIndex();
                 userData.addMeasurement(userData.getCurrentTargetList().get(userData.getCurrentTargetIndex()));
                 taskCompleted = false;
-                //doubleTapSound.start();
                 readAloudTarget();
             } else {
-                successSound.start();
+                soundPool.play(successSound, 0.25F, 0.25F, 1, 0, 1f);
                 if (feedbackModes.size() > currentVariant + 1) {
                     initializeNextVariant();
                 } else {
@@ -252,7 +253,7 @@ public class SliderAreaActivity extends AppCompatActivity {
         userData.createNewUserDataReference(id);
         // reset indices;
         userData.resetCurrentTargetIndex();
-        userData.setTargets(userData.createRandomizedTargetList(8)); // TODO decide
+        userData.setTargets(userData.createRandomizedTargetList(6)); // TODO decide
         // setup tactile area according to new variant
         tactileArea.changeLayout(feedbackModes.get(currentVariant), orientations.get(currentVariant));
 
@@ -290,7 +291,7 @@ public class SliderAreaActivity extends AppCompatActivity {
     private void handleValueSelection() {
 
         // Set input value
-        doubleTapSound.start();
+        soundPool.play(doubleTapSound, 0.15F, 0.15F, 1, 0, 1f);
         taskCompleted = true;
         startTask = 0;
         if (userData.getLastMeasurement().getMeasurementPairs().size() > 0) {

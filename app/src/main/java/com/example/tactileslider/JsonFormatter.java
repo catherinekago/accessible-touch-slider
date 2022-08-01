@@ -33,7 +33,7 @@ public class JsonFormatter {
 
     private final int STUDY_VARIANTS = 6;
 
-    private final int STUDY_REPETITIONS = R.string.task_repetitions;
+    private final int STUDY_REPETITIONS = 6;
     private final int STUDY_TASKS = 7;
     private ArrayList<String> participants;
 

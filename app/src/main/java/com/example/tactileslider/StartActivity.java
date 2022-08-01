@@ -30,7 +30,7 @@ import java.util.Map;
 
 public class StartActivity extends AppCompatActivity {
 
-    private final int STUDY_REPETITIONS = R.string.task_repetitions;
+    private final int STUDY_REPETITIONS = 6;
 
     private AppCompatButton downloadButton;
     private EditText idText;
@@ -103,8 +103,8 @@ public class StartActivity extends AppCompatActivity {
         intent = new Intent(this, SliderAreaActivity.class);
         for (int i = 0; i < variants.size(); i ++){
             int tagNum = i + 1;
-            intent.putExtra("feedbackMode_" + tagNum, variants.get(i).split(" ")[0]);
-            intent.putExtra("orientation_" + tagNum, variants.get(i).split(" ")[1]);
+            intent.putExtra("feedbackMode_" + tagNum, variants.get(i).split("_")[0]);
+            intent.putExtra("orientation_" + tagNum, variants.get(i).split("_")[1]);
         }
         intent.putExtra("userData", userData);
         startActivity(intent);
@@ -126,7 +126,7 @@ public class StartActivity extends AppCompatActivity {
                             HashMap<String, String> participant = new HashMap<String, String>();
                             participant.put("id", newId);
                             idText.setText(newId);
-                            int times = STUDY_REPETITIONS;
+                            int times = (Integer) STUDY_REPETITIONS;
                             userData = new UserData(newId,times);
                             firebase.collection("participants").document(newId).set(participant);
                         } else {

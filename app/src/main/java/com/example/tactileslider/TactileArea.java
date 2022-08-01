@@ -62,7 +62,7 @@ public class TactileArea {
         this.feedbackMode = feedbackMode;
         this.context = context;
         this.userData = userData;
-        coorinatesView.setText(sliderView.getHeight() +  "dp");
+
 
         // Create Soundpool object
         int maxStreams = 1;
@@ -114,7 +114,8 @@ public class TactileArea {
     @RequiresApi(api = Build.VERSION_CODES.N)
     private void setUpLayout() {
         sliderLength = MAX_LENGTH;
-        coorinatesView.setText(userData.getUserId());
+        //coorinatesView.setText(userData.getUserId());
+        coorinatesView.setText(sliderView.getHeight() +  "dp");
         heightTopBar = coorinatesView.getMeasuredHeight();
         likertCoords = calculateLikertYCords(heightTopBar, this.sliderLength);
         ArrayList<Integer> likertCoordRanges = new ArrayList<Integer>();
