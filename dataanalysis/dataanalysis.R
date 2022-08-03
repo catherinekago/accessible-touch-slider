@@ -2,6 +2,7 @@
 library(jsonlite)
 library(dplyr)
 library(tidyverse)
+library(rstatix)
 library(readxl)
 library(ggpubr)
 library(writexl)
@@ -127,7 +128,6 @@ calculateBacktrackingDistance = function (task){
   pathLengthPX = length_PX;
 
   stepLength = pathLengthMM / 6;
-  print(stepLength);
   
   backTrackingMM = stepLength * backTrackingDist;
   return (backTrackingMM);
@@ -220,7 +220,6 @@ createDfPerVariant = function(df){
   
  while(nrow(data_grouped) > 0){
     feedback = data_grouped$Feedback[1];
-    length = data_grouped$Length[1];
     orientation = data_grouped$Orientation[1];
     
       subDf = subset(df, Feedback == feedback & Orientation == orientation, select = c("UserId","Feedback", "Orientation", "Input", "Target", "Error_mm", "Completiontime", "BacktrackingDist")); 
@@ -354,13 +353,129 @@ createErrorBoxplots = function(df, phase){
 createCTBoxplots(sliderdata);
 createErrorBoxplots(sliderdata);
 
-# TODO: t test?
+#### ------------------------------------ Two-way Repeated Measures of ANOVA in R ------------------------------------
+
+createAnovaDf = function (df){
+  df$Variant = paste(df$Feedback, df$Orientation);
+  df = df[,-c(2,3)];
+  col_order = c("UserId", "Variant", "Target", "Input", "Error_mm", "Completiontime", "BacktrackingDist");
+  df = df[,col_order];
+  return (df);
+}
+
+sliderdata$Feedback = as.factor(sliderdata$Feedback);
+sliderdata$Orientation = as.factor(sliderdata$Orientation);
+
+anovaDf = createAnovaDf(sliderdata);
+
+bxp <- ggboxplot(
+  sliderdata, x = "Orientation", y = "Completiontime",
+  color = "Feedback", palette = "jco"
+)
+bxp
+
+bxp <- ggboxplot(
+  sliderdata, x = "Orientation", y = "Error_mm",
+  color = "Feedback", palette = "jco"
+)
+bxp
+
+bxp <- ggboxplot(
+  sliderdata, x = "Orientation", y = "BacktrackingDist",
+  color = "Feedback", palette = "jco"
+)
+bxp
+
+
+### ------------------------------------ Check for outliers  ------------------------------------
+
+outlierCT<-sliderdata %>%
+  group_by(Feedback, Orientation) %>%
+  identify_outliers(Completiontime)
+data.frame(outlierCT)
+
+
+outlierError<-sliderdata %>%
+  group_by(Feedback, Orientation) %>%
+  identify_outliers(Error_mm)
+data.frame(outlierError)
+
+
+outlierBT<-sliderdata %>%
+  group_by(Feedback, Orientation) %>%
+  identify_outliers(BacktrackingDist)
+data.frame(outlierBT)
+
+
+## TODO: If outliers appear, remove from data: for every independent variable
+
+#Q <- quantile(sliderdata$Completiontime, probs=c(.25, .75), na.rm = FALSE)
+#iqr <- IQR(sliderdata$Completiontime)
+#up <-  Q[2]+1.5*iqr # Upper Range  
+#low<- Q[1]-1.5*iqr # Lower Range
+#eliminated<- subset(sliderdata, sliderdata$Completiontime > (Q[1] - 1.5*iqr) & sliderdata$Completiontime < (Q[2]+1.5*iqr));
+#outlierCT<-eliminated %>%
+#  group_by(Feedback, Orientation) %>%
+#  identify_outliers(Completiontime)
+#data.frame(outlierCT)
+
+
+### ------------------------------------ Test for Normality ------------------------------------ 
 
 
 
+normalityCT<-sliderdata %>%
+  group_by(Feedback,Orientation) %>%
+  shapiro_test(Completiontime)
+data.frame(normalityCT)
+ggqqplot(sliderdata, "Completiontime", facet.by = c("Feedback", "Orientation"))
+any(normalityCT$p <= 0.05) # if true, do Friedmanstest
+
+normalityError<-sliderdata %>%
+  group_by(Feedback,Orientation) %>%
+  shapiro_test(Error_mm)
+data.frame(normalityError)
+ggqqplot(sliderdata, "Error_mm", facet.by = c("Feedback", "Orientation"))
+any(normalityError$p <= 0.05) # if true, do Friedmanstest
+
+normalityBT<-sliderdata %>%
+  group_by(Feedback,Orientation) %>%
+  shapiro_test(BacktrackingDist)
+data.frame(normalityBT)
+ggqqplot(sliderdata, "BacktrackingDist", facet.by = c("Feedback", "Orientation"))
+any(normalityBT$p <= 0.05) # if true, do Friedmanstest
+
+### ------------------------------------ Test for Sphericity - included in anova  ------------------------------------ 
+# https://www.datanovia.com/en/lessons/repeated-measures-anova-in-r/#two-way-repeated-measures-anova
+#  < 0.005 ??
+sliderdata$id = as.factor(c(1:nrow(sliderdata)))
+
+# TODO THIS WILL WORK WITH MORE DATA; HOPEFULLY
+#res.aov <- anova_test(data = sliderdata, dv = Completiontime, wid = id, within = c(Feedback, BacktrackingDist));
+#get_anova_table(res.aov)
+#res.aov <- anova_test(data = sliderdata, dv = Error_mm, wid = id, within = c(Feedback, BacktrackingDist));
+#get_anova_table(res.aov)
+#res.aov <- anova_test(data = sliderdata, dv = BacktrackingDist, wid = id, within = c(Feedback, BacktrackingDist));
+#get_anova_table(res.aov)
+
+# if significant interaction, make pairwise comparison between treatment groups (for every dv)
+#pwc <- sliderdata %>% group_by(Orientation) %>% pairwise_t_test(Completiontime ~ Feedback, paired = TRUE,  p.adjust.method = "bonferroni" )
+#pwc
+
+# If the interaction is not significant then simply execute pairwise t test comparison
+# comparisons for Feedback variable
+# sliderdata %>% pairwise_t_test(Completiontime ~ Feedback, paired = TRUE, p.adjust.method = "bonferroni")
+# comparisons for Orientation variable
+# sliderdata %>% pairwise_t_test(Completiontime ~ Orientation, paired = TRUE, p.adjust.method = "bonferroni")
 
 
-
+### ------------------------------------ Final Tests  ------------------------------------ 
+# if normality and spehricity not met: non-parametric alternative (Friedman test)
+# https://www.datanovia.com/en/lessons/friedman-test-in-r/
+#res.fried <- sliderdata %>% friedman_test(Completiontime ~ Feedback |id)
+# res.fried
+# Effect sizde
+# sliderdata %>% friedman_effsize(Completiontime ~ Feedback |id) ## more research
 
 #### ------ Step 3 : Interaction Plots ------ ####
 
@@ -436,7 +551,6 @@ calculateSpeed = function (length, oldPair, newPair){
   
   delta = (newTime - oldTime) / 1000; # in s 
   
-  print (paste(distance / delta, "cm/s"));
   return (distance / delta);
   
  
@@ -648,7 +762,7 @@ orderTasksForPlotting <- function(list){
   
 }
 
-orderTasksForPlotting(variant_list)
+#orderTasksForPlotting(variant_list) TODO enable
 
 
 
