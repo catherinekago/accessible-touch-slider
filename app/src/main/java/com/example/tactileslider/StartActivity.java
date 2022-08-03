@@ -58,7 +58,7 @@ public class StartActivity extends AppCompatActivity {
         this.audioFeedback = new AudioFeedback();
         this.soundIdDoubleTap = audioFeedback.getSoundPool().load(this, R.raw.doubletap, 1);
 
-        initializeUserDataObject();
+        getUserIdFromDb();
 
         findViewById(R.id.changeId).setOnClickListener(view -> changeId());
         findViewById(R.id.startStudy).setOnClickListener(view -> createIntent());
@@ -70,49 +70,14 @@ public class StartActivity extends AppCompatActivity {
 
     private void changeId() {
         String newId = String.valueOf(idText.getText());
-        userData.setUserID(newId);
-        // add collection to firebase
-        FirebaseFirestore firebase = FirebaseFirestore.getInstance();
-        CollectionReference collectionRef = firebase.collection("participants");
-        collectionRef
-                .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            int P_count = task.getResult().size();
-                            String lastId = "P_" + (P_count);
-                            // add collection to firebase
-                            FirebaseFirestore firebase = FirebaseFirestore.getInstance();
-                            // add userID to firebase collectionList collection
-                            Map<String, Object> data = new HashMap<>();
-                            data.put("id", newId);
-                            firebase.collection("participants").document(lastId).delete();
-                            firebase.collection("participants").document(newId).set(data);
-                        } else {
-                            Log.d(TAG, "Error getting documents: ", task.getException());
-                        }
-                    }
-                });
     }
 
     private void createIntent(){
-        ArrayList<String> variants = latinSquare.getVariantOrder(userData.getUserId());
-        Log.d("latinsquare", String.valueOf(variants));
-        Intent intent;
-        intent = new Intent(this, SliderAreaActivity.class);
-        for (int i = 0; i < variants.size(); i ++){
-            int tagNum = i + 1;
-            intent.putExtra("feedbackMode_" + tagNum, variants.get(i).split("_")[0]);
-            intent.putExtra("orientation_" + tagNum, variants.get(i).split("_")[1]);
-        }
-        intent.putExtra("userData", userData);
-        startActivity(intent);
+        initializeUserDataObject(this);
     }
-
-
+    
     // Determine the ID of the participant according to already existing IDs
-    private void initializeUserDataObject() {
+    private void initializeUserDataObject(StartActivity startActivity) {
         FirebaseFirestore firebase = FirebaseFirestore.getInstance();
         CollectionReference collectionRef = firebase.collection("participants");
         collectionRef
@@ -122,13 +87,34 @@ public class StartActivity extends AppCompatActivity {
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
                         if (task.isSuccessful()) {
                             int P_count = task.getResult().size();
-                            String newId = "P_" + (P_count+1);
+                            String newId;
+                            if (("P_"+ (P_count+1)).equals((String.valueOf(idText.getText())))){
+                                Log.d("IDS", "same id");
+                                newId =  "P_" + (P_count+1);
+                            } else {
+                                Log.d("IDS", "different id");
+                                firebase.collection("participants").document("P_" + P_count).delete();
+                                newId =  "P_" + (P_count);
+                            }
                             HashMap<String, String> participant = new HashMap<String, String>();
                             participant.put("id", newId);
                             idText.setText(newId);
                             int times = (Integer) STUDY_REPETITIONS;
                             userData = new UserData(newId,times);
                             firebase.collection("participants").document(newId).set(participant);
+
+                            // Start intent
+                            ArrayList<String> variants = latinSquare.getVariantOrder(userData.getUserId());
+                            Log.d("latinsquare", String.valueOf(variants));
+                            Intent intent;
+                            intent = new Intent(startActivity, SliderAreaActivity.class);
+                            for (int i = 0; i < variants.size(); i ++){
+                                int tagNum = i + 1;
+                                intent.putExtra("feedbackMode_" + tagNum, variants.get(i).split("_")[0]);
+                                intent.putExtra("orientation_" + tagNum, variants.get(i).split("_")[1]);
+                            }
+                            intent.putExtra("userData", userData);
+                            startActivity(intent);
                         } else {
                             Log.d(TAG, "Error getting documents: ", task.getException());
                         }
@@ -136,6 +122,25 @@ public class StartActivity extends AppCompatActivity {
                 });
     };
 
-    }
+    private void getUserIdFromDb(){
+            FirebaseFirestore firebase = FirebaseFirestore.getInstance();
+            CollectionReference collectionRef = firebase.collection("participants");
+            collectionRef
+                    .get()
+                    .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                            if (task.isSuccessful()) {
+                                int P_count = task.getResult().size();
+                                String newId =  "P_" + (P_count+1);
+                                idText.setText(newId);
 
+                            } else {
+                                Log.d(TAG, "Error getting documents: ", task.getException());
+                            }
+                        }
+                    });
+        };
+
+    }
 

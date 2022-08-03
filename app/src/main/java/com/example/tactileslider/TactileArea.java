@@ -116,6 +116,7 @@ public class TactileArea {
         sliderLength = MAX_LENGTH;
         //coorinatesView.setText(userData.getUserId());
         coorinatesView.setText(sliderView.getHeight() +  "dp");
+        // coorinatesView.setText(sliderView.getWidth() +  "dp");
         heightTopBar = coorinatesView.getMeasuredHeight();
         likertCoords = calculateLikertYCords(heightTopBar, this.sliderLength);
         ArrayList<Integer> likertCoordRanges = new ArrayList<Integer>();
