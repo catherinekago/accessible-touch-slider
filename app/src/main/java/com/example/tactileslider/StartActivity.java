@@ -30,8 +30,6 @@ import java.util.Map;
 
 public class StartActivity extends AppCompatActivity {
 
-    private final int STUDY_REPETITIONS = 6;
-
     private AppCompatButton downloadButton;
     private EditText idText;
 
@@ -99,7 +97,7 @@ public class StartActivity extends AppCompatActivity {
                             HashMap<String, String> participant = new HashMap<String, String>();
                             participant.put("id", newId);
                             idText.setText(newId);
-                            int times = (Integer) STUDY_REPETITIONS;
+                            int times =  StudySettings.STUDY_REPETITIONS;
                             userData = new UserData(newId,times);
                             firebase.collection("participants").document(newId).set(participant);
 

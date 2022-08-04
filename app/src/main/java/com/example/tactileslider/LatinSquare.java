@@ -1,5 +1,8 @@
 package com.example.tactileslider;
 
+import android.util.Log;
+
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -29,24 +32,12 @@ public class LatinSquare {
                 variants.get(4), variants.get(1), variants.get(2), variants.get(3)));
         ArrayList<String> p6 = new ArrayList<>(Arrays.asList(variants.get(4), variants.get(5),
                 variants.get(2), variants.get(0), variants.get(3), variants.get(1)));
-        latinSquareMap.put("P_1", p1);
-        latinSquareMap.put("P_2", p2);
-        latinSquareMap.put("P_3", p3);
-        latinSquareMap.put("P_4", p4);
-        latinSquareMap.put("P_5", p5);
-        latinSquareMap.put("P_6", p6);
-        latinSquareMap.put("P_7", p1);
-        latinSquareMap.put("P_8", p2);
-        latinSquareMap.put("P_9", p3);
-        latinSquareMap.put("P_10", p4);
-        latinSquareMap.put("P_11", p5);
-        latinSquareMap.put("P_12", p6);
-        latinSquareMap.put("P_13", p1);
-        latinSquareMap.put("P_14", p2);
-        latinSquareMap.put("P_15", p3);
-        latinSquareMap.put("P_16", p4);
-        latinSquareMap.put("P_17", p5);
-        latinSquareMap.put("P_18", p6);
+
+        ArrayList<ArrayList> latinSquareOrders = new ArrayList<>(Arrays.asList(p6, p1, p2, p3, p4, p5));
+        for(int i = 1; i <= StudySettings.MAX_PARTICIPANTS; i++){
+            int pos = i % latinSquareOrders.size();
+            latinSquareMap.put("P_"+i, latinSquareOrders.get(pos));
+        }
     }
 
     public ArrayList<String> getVariantOrder (String id) {

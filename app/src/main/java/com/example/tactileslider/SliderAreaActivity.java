@@ -253,7 +253,7 @@ public class SliderAreaActivity extends AppCompatActivity {
         userData.createNewUserDataReference(id);
         // reset indices;
         userData.resetCurrentTargetIndex();
-        userData.setTargets(userData.createRandomizedTargetList(6)); // TODO decide
+        userData.setTargets(userData.createRandomizedTargetList(StudySettings.STUDY_REPETITIONS));
         // setup tactile area according to new variant
         tactileArea.changeLayout(feedbackModes.get(currentVariant), orientations.get(currentVariant));
 
