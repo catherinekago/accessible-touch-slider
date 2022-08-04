@@ -18,10 +18,10 @@ library(writexl)
 options(scipen = 999)
 
 #### ------ Step 1 : Import Data Sets ------ ####
-width_PX = 1536; # TODO
-width_MM = 147.0; # TODO
+width_PX = 1440; 
+width_MM = 147.0; # TODO         
 
-length_PX = 1680; # TODO
+length_PX = 2201; 
 length_MM = 161.0; # TODO
 
 INDEX_ID = 1;

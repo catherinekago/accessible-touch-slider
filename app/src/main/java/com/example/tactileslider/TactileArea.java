@@ -24,7 +24,7 @@ public class TactileArea {
     TextView coorinatesView;
 
     private int sliderLength;
-    private static int MAX_LENGTH = 1680; // TODO find out on smartphone
+    private static int MAX_LENGTH = 2061;
     private int heightTopBar;
     private ArrayList<Integer> likertCoords = new ArrayList<Integer>();
     private int likertSpacing;
@@ -114,9 +114,7 @@ public class TactileArea {
     @RequiresApi(api = Build.VERSION_CODES.N)
     private void setUpLayout() {
         sliderLength = MAX_LENGTH;
-        //coorinatesView.setText(userData.getUserId());
-        coorinatesView.setText(sliderView.getHeight() +  "dp");
-        // coorinatesView.setText(sliderView.getWidth() +  "dp");
+        coorinatesView.setText(userData.getUserId());
         heightTopBar = coorinatesView.getMeasuredHeight();
         likertCoords = calculateLikertYCords(heightTopBar, this.sliderLength);
         ArrayList<Integer> likertCoordRanges = new ArrayList<Integer>();
@@ -190,7 +188,6 @@ public class TactileArea {
         boolean valueIsNotMax = userInputValue <= 8.0;
         if (valueIsMin && valueIsNotMax) {
             if (coordRanges.contains(yTouch)) {
-
                 LikertItem crossedItem = likertItems.get(getLikertIndexFromRange(yTouch));
                 sliderView.getBackground().setAlpha(crossedItem.getAlphaValue());
                 // Generate audio feedback
