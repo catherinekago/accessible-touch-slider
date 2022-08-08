@@ -1,4 +1,4 @@
-package com.example.tactileslider;
+package com.example.tactileslider.StudyData;
 
 public class StudySettings {
     public static final int MAX_PARTICIPANTS = 30;

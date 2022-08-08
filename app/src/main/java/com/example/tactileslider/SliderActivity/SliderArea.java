@@ -1,4 +1,4 @@
-package com.example.tactileslider;
+package com.example.tactileslider.SliderActivity;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -13,11 +13,13 @@ import android.widget.TextView;
 
 import androidx.annotation.RequiresApi;
 
+import com.example.tactileslider.R;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.stream.IntStream;
 
-public class TactileArea {
+public class SliderArea {
 
     private final UserData userData;
     View sliderView;
@@ -49,12 +51,12 @@ public class TactileArea {
     private final String COMBINED = "combined";
     private Context context;
 
-    private SliderAreaActivity mainActivity;
+    private SliderActivity mainActivity;
     private ArrayList<Integer> coordRanges;
     private LikertItem lastCrossedItem;
 
     @RequiresApi(api = Build.VERSION_CODES.M)
-    public TactileArea(SliderAreaActivity mainActivity, UserData userData, String feedbackMode, String orientation, Context context) {
+    public SliderArea(SliderActivity mainActivity, UserData userData, String feedbackMode, String orientation, Context context) {
 
         this.mainActivity = mainActivity;
         sliderView = mainActivity.findViewById(R.id.sliderView);

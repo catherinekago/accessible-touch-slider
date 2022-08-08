@@ -1,8 +1,5 @@
-package com.example.tactileslider;
+package com.example.tactileslider.StudyData;
 
-import android.util.Log;
-
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;

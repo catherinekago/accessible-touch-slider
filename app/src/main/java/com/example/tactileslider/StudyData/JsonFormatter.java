@@ -1,4 +1,4 @@
-package com.example.tactileslider;
+package com.example.tactileslider.StudyData;
 
 import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
 

@@ -1,4 +1,4 @@
-package com.example.tactileslider;
+package com.example.tactileslider.SliderActivity;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;

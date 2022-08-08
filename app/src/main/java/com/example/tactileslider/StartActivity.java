@@ -10,13 +10,15 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
-import android.widget.CheckBox;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.EditText;
-import android.widget.TableLayout;
-import android.widget.TableRow;
-import android.widget.TextView;
 
+import com.example.tactileslider.SliderActivity.SliderActivity;
+import com.example.tactileslider.StudyData.JsonFormatter;
+import com.example.tactileslider.StudyData.LatinSquare;
+import com.example.tactileslider.StudyData.StudySettings;
+import com.example.tactileslider.SliderActivity.UserData;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.CollectionReference;
@@ -24,9 +26,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.Map;
 
 public class StartActivity extends AppCompatActivity {
 
@@ -44,6 +44,11 @@ public class StartActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Make app fullscreen
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
         setContentView(R.layout.activity_start);
 
         // Setup activity components
@@ -64,6 +69,7 @@ public class StartActivity extends AppCompatActivity {
         downloadButton.setOnClickListener(view -> jsonFormatter.downloadUserTestingData());
 
         findViewById(R.id.changeId).setVisibility(View.VISIBLE);
+
     }
 
     private void changeId() {
@@ -105,7 +111,7 @@ public class StartActivity extends AppCompatActivity {
                             ArrayList<String> variants = latinSquare.getVariantOrder(userData.getUserId());
                             Log.d("latinsquare", String.valueOf(variants));
                             Intent intent;
-                            intent = new Intent(startActivity, SliderAreaActivity.class);
+                            intent = new Intent(startActivity, SliderActivity.class);
                             for (int i = 0; i < variants.size(); i ++){
                                 int tagNum = i + 1;
                                 intent.putExtra("feedbackMode_" + tagNum, variants.get(i).split("_")[0]);
@@ -139,6 +145,21 @@ public class StartActivity extends AppCompatActivity {
                         }
                     });
         };
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+
+
+        Log.d("Focus debug", "Focus changed !");
+
+        if(!hasFocus) {
+            Log.d("Focus debug", "Lost focus !");
+
+            Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
+            sendBroadcast(closeDialog);
+        }
+    }
 
     }
 

@@ -1,4 +1,4 @@
-package com.example.tactileslider;
+package com.example.tactileslider.SliderActivity;
 
 public class LikertItem {
     private Integer yCoord;

@@ -1,40 +1,33 @@
-package com.example.tactileslider;
+package com.example.tactileslider.SliderActivity;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Context;
 import android.media.AudioManager;
-import android.media.MediaPlayer;
 import android.media.SoundPool;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import java.lang.reflect.Array;
-import java.nio.charset.StandardCharsets;
+import com.example.tactileslider.R;
+import com.example.tactileslider.StudyData.StudySettings;
+
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
-import java.util.Set;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
-public class SliderAreaActivity extends AppCompatActivity {
+public class SliderActivity extends AppCompatActivity {
 
     // Tactile Area Variant
-    TactileArea tactileArea;
+    SliderArea sliderArea;
     private int xTouch;
     private int yTouch;
 
@@ -75,7 +68,7 @@ public class SliderAreaActivity extends AppCompatActivity {
         setContentView(R.layout.activity_slider_area);
 
         this.context = this;
-        tactileArea = new TactileArea(this, userData, feedbackModes.get(currentVariant), orientations.get(currentVariant), context);
+        sliderArea = new SliderArea(this, userData, feedbackModes.get(currentVariant), orientations.get(currentVariant), context);
         coorinatesView = findViewById(R.id.topBar);
 
         View.OnTouchListener getCoordinates = setUpTapAndMotionListener();
@@ -179,7 +172,7 @@ public class SliderAreaActivity extends AppCompatActivity {
                         break;
                     case MotionEvent.ACTION_MOVE:
                         if (isLongClick) {
-                            tactileArea.handleTouchEvent(xTouch, yTouch, userData, startTask, tasksStarted);
+                            sliderArea.handleTouchEvent(xTouch, yTouch, userData, startTask, tasksStarted);
                         }
                         break;
                     case MotionEvent.ACTION_UP:
@@ -255,7 +248,7 @@ public class SliderAreaActivity extends AppCompatActivity {
         userData.resetCurrentTargetIndex();
         userData.setTargets(userData.createRandomizedTargetList(StudySettings.STUDY_REPETITIONS));
         // setup tactile area according to new variant
-        tactileArea.changeLayout(feedbackModes.get(currentVariant), orientations.get(currentVariant));
+        sliderArea.changeLayout(feedbackModes.get(currentVariant), orientations.get(currentVariant));
 
         // reset variables
         tasksStarted = false;
@@ -275,7 +268,7 @@ public class SliderAreaActivity extends AppCompatActivity {
                     isLongClick = true;
                     startTask = System.currentTimeMillis();
                     // Check for finger position and provide feedback
-                    tactileArea.handleTouchEvent(xTouch, yTouch, userData, startTask, tasksStarted);
+                    sliderArea.handleTouchEvent(xTouch, yTouch, userData, startTask, tasksStarted);
 
                 }
                 return false;

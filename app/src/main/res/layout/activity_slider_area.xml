@@ -20,7 +20,7 @@
 
     android:background="@color/black"
     android:orientation="vertical"
-    tools:context="com.example.tactileslider.SliderAreaActivity">
+    tools:context="com.example.tactileslider.SliderActivity.SliderActivity">
 
     <TextView
         android:id="@+id/topBar"
