@@ -1,8 +1,5 @@
 <resources>
-    <string name="app_name">TactileSlider</string>
+    <string name="app_name">Accessible Touch Slider</string>
     <string name="title_activity_settings">SettingsActivity</string>
-
-    <!-- Preference Titles -->
-    <string name="task_repetitions">7</string>
 
 </resources>
